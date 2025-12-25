@@ -502,3 +502,133 @@ Test Steps:
 Expected Result:
 - Cart total equals the sum of all item subtotals
 - No rounding or calculation errors are observed
+
+---
+
+## Checkout
+
+### TC-CHK-001
+Title: Complete checkout with valid shipping details  
+Module: Checkout  
+Priority: High (Regression-Critical)  
+
+Preconditions:
+- User is logged in
+- Cart contains at least one product
+
+Test Steps:
+1. Navigate to the checkout page
+2. Enter valid shipping address details
+3. Select a payment method (mocked)
+4. Click the "Place Order" button
+
+Expected Result:
+- Checkout is completed successfully
+- User is redirected to order confirmation page
+- Order is created with correct details
+
+---
+
+### TC-CHK-002
+Title: Prevent checkout with missing required fields  
+Module: Checkout  
+Priority: High  
+
+Preconditions:
+- User is logged in
+- Cart contains at least one product
+
+Test Steps:
+1. Navigate to the checkout page
+2. Leave one or more required fields empty
+3. Click the "Place Order" button
+
+Expected Result:
+- Order placement is blocked
+- Validation messages are displayed for missing fields
+- User remains on the checkout page
+
+---
+
+### TC-CHK-003
+Title: Prevent checkout with invalid shipping information  
+Module: Checkout  
+Priority: Medium  
+
+Preconditions:
+- User is logged in
+- Cart contains at least one product
+
+Test Steps:
+1. Navigate to the checkout page
+2. Enter invalid data in shipping fields (e.g., invalid phone number)
+3. Click the "Place Order" button
+
+Expected Result:
+- Order placement is blocked
+- Appropriate validation error messages are displayed
+- User remains on the checkout page
+
+---
+
+### TC-CHK-004
+Title: Prevent checkout when cart is empty  
+Module: Checkout  
+Priority: High  
+
+Preconditions:
+- User is logged in
+- Cart is empty
+
+Test Steps:
+1. Attempt to navigate to the checkout page
+
+Expected Result:
+- User is redirected back to cart or product listing page
+- User is informed that cart is empty
+- Order placement is not possible
+
+---
+### TC-CHK-005
+Title: Handle checkout failure gracefully  
+Module: Checkout  
+Priority: Medium  
+
+Preconditions:
+- User is logged in
+- Cart contains at least one product
+
+Test Steps:
+1. Navigate to the checkout page
+2. Enter valid shipping details
+3. Simulate checkout failure (e.g., network error)
+4. Click the "Place Order" button
+
+Expected Result:
+- Checkout failure message is displayed
+- Order is not created
+- Cart contents remain intact
+- User can retry checkout
+
+---
+
+## Order Confirmation
+
+### TC-ORD-001
+Title: Verify order confirmation details after successful checkout  
+Module: Order Confirmation  
+Priority: High  
+
+Preconditions:
+- Order has been placed successfully
+
+Test Steps:
+1. Observe the order confirmation page
+
+Expected Result:
+- Unique order ID is displayed
+- Purchased items and quantities are shown correctly
+- Total order amount is accurate
+- Cart is cleared after order placement
+
+---
