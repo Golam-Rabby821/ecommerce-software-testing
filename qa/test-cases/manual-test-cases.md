@@ -12,7 +12,7 @@ Prepared by: Golam Rabby
 
 Title: Login with valid credentials  
 Module: Authentication  
-Priority: High
+Priority: High (Regression-Critical)
 
 Preconditions:
 
@@ -110,7 +110,7 @@ Expected Result:
 
 Title: Register with valid user details  
 Module: Authentication  
-Priority: High
+Priority: High (Regression-Critical)
 
 Preconditions:
 
