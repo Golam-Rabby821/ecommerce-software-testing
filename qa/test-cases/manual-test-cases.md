@@ -279,3 +279,78 @@ Expected Result:
 - Non-matching products are not shown
 
 ---
+
+## Product Details
+
+### TC-PD-001
+Title: Basic Product Information Display  
+Module: Product Details  
+Priority: High  
+
+Preconditions:
+- User is on product listing page
+- At least one product exists with complete information
+
+Test Steps:
+1. Click on any product from the listing
+2. Observe the product details page
+3. Verify all information sections
+
+Expected Result:
+- Product details page loads without errors
+- Product image is displayed clearly
+- Product title matches listing page
+- Price is displayed and formatted correctly
+- Product description is readable
+- "Add to Cart" button is visible and enabled
+- Quantity selector defaults to 1
+- No broken images or missing data
+
+---
+
+### TC-PD-002
+Title: Out of Stock Product Behavior  
+Module: Product Details  
+Priority: High  
+
+Preconditions:
+- Product exists but is out of stock
+
+Test Steps:
+1. Navigate to out-of-stock product
+2. Observe UI elements
+3. Attempt to add to cart
+4. Check browser console for errors
+
+Expected Result:
+- Clear "Out of Stock" indicator is displayed
+- Add to Cart button is disabled
+- Quantity selector is disabled or hidden
+- No JavaScript errors in console
+- User cannot proceed with purchase
+
+---
+
+### TC-PD-003
+Title: Quantity Selection Edge Cases  
+Module: Product Details  
+Priority: Medium  
+
+Preconditions:
+- Product has limited stock (5 units max)
+
+Test Steps:
+1. Navigate to product details
+2. Attempt to set quantity to 0
+3. Set quantity to 1
+4. Set quantity to 5
+5. Attempt to set quantity to 6
+6. Set quantity to very high number (999)
+
+Expected Result:
+- Quantity cannot be set below 1
+- Quantity can be set between 1-5
+- Quantity cannot exceed available stock (5)
+- Clear error message when exceeding stock
+- Input field validates numeric input only
+- No form submission with invalid quantity
