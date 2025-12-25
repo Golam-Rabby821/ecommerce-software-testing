@@ -222,3 +222,54 @@ Expected Result:
 - No protected content is displayed
 
 ---
+
+## Product Listing
+
+### TC-PROD-001
+Title: View product listing page with available products  
+Module: Product Listing  
+Priority: High (Regression-Critical)  
+
+Preconditions:
+- Application is accessible
+- Products exist in the system
+
+Test Steps:
+1. Navigate to the product listing page
+2. Observe the list of products displayed
+
+Expected Result:
+- Product listing page loads successfully
+- Each product displays name, price, image, and Add to Cart option
+
+### TC-PROD-002
+Title: Verify product listing when no products are available  
+Module: Product Listing  
+Priority: Medium  
+
+Preconditions:
+- No products are available in the system
+
+Test Steps:
+1. Navigate to the product listing page
+
+Expected Result:
+- User is informed that no products are available
+- Page does not break or display incorrect data
+
+### TC-PROD-003
+Title: Search for a product using valid keyword  
+Module: Product Listing  
+Priority: Medium  
+
+Preconditions:
+- Products exist in the system
+- Search functionality is available
+
+Test Steps:
+1. Enter a valid product keyword in the search field
+2. Trigger the search action
+
+Expected Result:
+- Relevant products matching the keyword are displayed
+- Non-matching products are not shown
