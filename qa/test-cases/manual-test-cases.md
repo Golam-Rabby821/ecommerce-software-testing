@@ -354,3 +354,151 @@ Expected Result:
 - Clear error message when exceeding stock
 - Input field validates numeric input only
 - No form submission with invalid quantity
+
+## Cart
+
+### TC-CART-001
+Title: Add product to cart from product details page  
+Module: Cart  
+Priority: High (Regression-Critical)  
+
+Preconditions:
+- Product is in stock
+- User is on product details page
+
+Test Steps:
+1. Select a valid quantity
+2. Click on the "Add to Cart" button
+3. Navigate to the cart page
+
+Expected Result:
+- Product is added to the cart successfully
+- Correct product name, price, and quantity are displayed
+- Cart item count is updated correctly
+
+---
+
+### TC-CART-002
+Title: Add same product to cart multiple times  
+Module: Cart  
+Priority: High  
+
+Preconditions:
+- Product is in stock
+- Product already exists in the cart
+
+Test Steps:
+1. Add the same product to the cart again
+2. Navigate to the cart page
+
+Expected Result:
+- Product quantity is updated correctly
+- Duplicate cart items are not created
+
+---
+
+### TC-CART-003
+Title: Update product quantity in cart within valid range  
+Module: Cart  
+Priority: High  
+
+Preconditions:
+- Cart contains at least one product
+
+Test Steps:
+1. Increase product quantity within available stock
+2. Decrease product quantity (not below 1)
+
+Expected Result:
+- Quantity updates successfully
+- Subtotal and total price are recalculated correctly
+
+---
+
+### TC-CART-004
+Title: Prevent setting invalid product quantity in cart  
+Module: Cart  
+Priority: Medium  
+
+Preconditions:
+- Cart contains at least one product
+
+Test Steps:
+1. Attempt to set quantity to 0
+2. Attempt to set quantity greater than available stock
+
+Expected Result:
+- Invalid quantities are blocked
+- User receives appropriate validation feedback
+- Cart state remains consistent
+
+---
+
+### TC-CART-005
+Title: Remove product from cart  
+Module: Cart  
+Priority: High  
+
+Preconditions:
+- Cart contains at least one product
+
+Test Steps:
+1. Click the "Remove" option for a product
+2. Observe cart contents
+
+Expected Result:
+- Product is removed from the cart
+- Cart total is updated correctly
+
+---
+
+### TC-CART-006
+Title: Display empty cart state after removing all items  
+Module: Cart  
+Priority: Medium  
+
+Preconditions:
+- Cart contains one or more products
+
+Test Steps:
+1. Remove all products from the cart
+
+Expected Result:
+- Empty cart message is displayed
+- Checkout option is disabled or hidden
+
+---
+
+### TC-CART-007
+Title: Persist cart state during page navigation  
+Module: Cart  
+Priority: High (Regression-Critical)  
+
+Preconditions:
+- Cart contains at least one product
+
+Test Steps:
+1. Navigate away from cart page
+2. Return to cart page
+
+Expected Result:
+- Cart contents remain unchanged
+- Product quantities and prices are retained
+
+---
+
+### TC-CART-008
+Title: Verify cart total price calculation  
+Module: Cart  
+Priority: High  
+
+Preconditions:
+- Cart contains multiple products
+
+Test Steps:
+1. Verify individual item subtotals
+2. Verify cart total amount
+
+Expected Result:
+- Cart total equals the sum of all item subtotals
+- No rounding or calculation errors are observed
