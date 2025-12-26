@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { Product } from '@/data/products';
 
+const enableCartChaos = import.meta.env.VITE_ENABLE_CART_CHAOS === "true";
+
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -52,10 +54,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
-    
+    if (enableCartChaos) {
+      await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
+    }
+
     // Simulate occasional failure (5% chance)
-    if (Math.random() < 0.05) {
+    if (enableCartChaos && Math.random() < 0.05) {
       setIsLoading(false);
       return { success: false, error: 'Failed to add item to cart. Please try again.' };
     }

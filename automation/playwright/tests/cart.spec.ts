@@ -11,7 +11,10 @@ test.describe("Cart regression flow", () => {
 		await page.getByLabel(/password/i).fill("Password123!");
 		await page.getByRole("button", { name: /sign in/i }).click();
 
+		// Primary assertion: authenticated UI
+        
 		await expect(page).toHaveURL("/");
+		await expect(page.getByRole("button", { name: /logout/i })).toBeVisible();
 
 		// --- Product listing ---
 		await expect(page.getByTestId("product-grid")).toBeVisible();
