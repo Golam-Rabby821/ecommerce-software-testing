@@ -14,6 +14,12 @@ export default defineConfig({
 		baseURL: "http://localhost:8080",
 		trace: "on-first-retry",
 	},
+	webServer: {
+		command: "npm run dev",
+		url: "http://localhost:8080",
+		timeout: 120 * 1000,
+		reuseExistingServer: !process.env.CI,
+	},
 
 	projects: [
 		{

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { User, validateLogin, registerUser } from '@/data/users';
 
+const enableAuthChaos = import.meta.env.VITE_ENABLE_AUTH_CHAOS === "true";
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -27,13 +29,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     // Simulate network delay for testing async behavior
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
-    
-    // Simulate occasional API failure (10% chance)
-    if (Math.random() < 0.1) {
-      setIsLoading(false);
-      return { success: false, error: 'Server error. Please try again later.' };
+    if (enableAuthChaos) {
+      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
     }
+
+    // Simulate occasional API failure (10% chance)
+    if (enableAuthChaos &&  Math.random() < 0.1) {
+			setIsLoading(false);
+			return { success: false, error: "Server error. Please try again later." };
+		}
     
     const result = validateLogin(email, password);
     
@@ -51,13 +55,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
+    if (enableAuthChaos) {
+			await new Promise((resolve) =>
+				setTimeout(resolve, 800 + Math.random() * 400),
+			);
+		}
     
     // Simulate occasional API failure (10% chance)
-    if (Math.random() < 0.1) {
-      setIsLoading(false);
-      return { success: false, error: 'Registration failed. Please try again later.' };
-    }
+    if (enableAuthChaos && Math.random() < 0.1) {
+			setIsLoading(false);
+			return {
+				success: false,
+				error: "Registration failed. Please try again later.",
+			};
+		}
     
     const result = registerUser(email, password, name);
     

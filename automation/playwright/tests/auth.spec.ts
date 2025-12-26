@@ -20,6 +20,9 @@ test("User can log in with valid credentials", async ({ page }) => {
 
 	await page.getByRole("button", { name: /sign in/i }).click();
 
+	// Primary assertion: authenticated UI
+	
+	// Secondary assertion: navigation
 	await expect(page).toHaveURL("/");
 	await expect(page.getByRole("button", { name: /logout/i })).toBeVisible();
 });
