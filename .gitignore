@@ -30,6 +30,7 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+automation/playwright/.auth/
 
 .env
 .env.*
