@@ -45,7 +45,7 @@ test.describe("Checkout regression flow", () => {
 			await page.getByTestId("shipping-city").fill("Test City");
 			await page.getByTestId("shipping-state").fill("CA");
 			await page.getByTestId("shipping-zip").fill("12345");
-			await page.getByTestId("shipping-phone").fill("555-555-5555");
+			await page.getByTestId("shipping-phone").fill("01712345678");
 			await page.getByTestId("continue-to-payment-button").click();
 
 			await page.getByTestId("card-number").fill("4242424242424242");
