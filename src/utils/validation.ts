@@ -72,7 +72,10 @@ export const shippingAddressSchema = z.object({
   phone: z
     .string()
     .min(1, 'Phone number is required')
-    .regex(/^\d{10}$|^\d{3}-\d{3}-\d{4}$/, 'Please enter a valid phone number'),
+    .regex(
+      /^01\d{9}$/,
+      'Use a Bangladeshi number in the 01XXXXXXXXX format'
+    ),
 });
 
 // Payment method schema (mock)
