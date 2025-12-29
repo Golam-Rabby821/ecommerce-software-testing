@@ -397,16 +397,16 @@ const Checkout: React.FC = () => {
 											)}
 										</div>
 										<div className="space-y-2">
-											<Label htmlFor="phone">Phone Number</Label>
-											<Input
-												id="phone"
-												name="phone"
-												value={shippingData.phone}
-												onChange={handleShippingChange}
-												placeholder="555-555-5555"
-												className={errors.phone ? "border-destructive" : ""}
-												data-testid="shipping-phone"
-											/>
+										<Label htmlFor="phone">Phone Number</Label>
+										<Input
+											id="phone"
+											name="phone"
+											value={shippingData.phone}
+											onChange={handleShippingChange}
+											placeholder="01XXXXXXXXX"
+											className={errors.phone ? "border-destructive" : ""}
+											data-testid="shipping-phone"
+										/>
 											{errors.phone && (
 												<p
 													className="text-sm text-destructive"
