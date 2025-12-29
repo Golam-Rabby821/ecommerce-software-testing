@@ -1,7 +1,6 @@
 # Regression Coverage Overview
 
-This document outlines regression-critical workflows in the application and describes how they are covered (manual vs automated).  
-Coverage decisions are based on business risk, user impact, and maintenance cost.
+This document outlines regression-critical workflows in the application and describes how they are covered (manual vs automated). Coverage decisions are based on business risk, user impact, and maintenance cost.
 
 ---
 
@@ -9,14 +8,9 @@ Coverage decisions are based on business risk, user impact, and maintenance cost
 
 The following workflows are considered regression-critical and must always function correctly:
 
-### 1. Purchase Flow (Highest Priority)
-Login → Browse Products → Add to Cart → Checkout → Order Confirmation
-
-### 2. Cart Integrity
-Add Item → Update Quantity → Navigate Pages → Cart State Retained
-
-### 3. Authentication Flow
-Login → Access Protected Pages → Logout → Access Blocked
+1. Purchase Flow (Highest Priority): Login -> Browse Products -> Add to Cart -> Checkout -> Order Confirmation
+2. Cart Integrity: Add Item -> Update Quantity -> Navigate Pages -> Cart State Retained
+3. Authentication Flow: Login -> Access Protected Pages -> Logout -> Access Blocked
 
 These paths are automated using Playwright and executed in CI.
 
@@ -24,18 +18,18 @@ These paths are automated using Playwright and executed in CI.
 
 ## Coverage Matrix
 
-| Feature / Flow            | Manual Coverage | Automated Coverage | Notes |
-|---------------------------|-----------------|--------------------|-------|
-| Authentication (Login)    | ✅              | ✅                 | Global auth state used in automation |
-| Product Listing           | ✅              | ❌                 | Static UI, low regression risk |
-| Product Details           | ✅              | ❌                 | Content rendering validated manually |
-| Cart Core Flow             | ✅              | ✅                 | Regression-critical |
-| Checkout                   | ✅              | ✅                 | Regression-critical |
-| Order Confirmation         | ✅              | ✅                 | End-to-end purchase validation |
-| Wishlist                   | ✅              | ❌                 | Non-blocking user convenience feature |
-| Product Specifications     | ✅              | ❌                 | Static informational content |
-| User Profile               | ✅              | ❌                 | Frontend-only, medium risk |
-| Reviews                    | ✅              | ❌                 | Async UI, non-blocking |
+| Feature / Flow         | Manual Coverage | Automated Coverage | Notes                                      |
+|------------------------|-----------------|--------------------|--------------------------------------------|
+| Authentication (Login) | Yes             | Yes                | Global auth state used in automation       |
+| Product Listing        | Yes             | No                 | Static UI, low regression risk             |
+| Product Details        | Yes             | No                 | Content rendering validated manually       |
+| Cart Core Flow         | Yes             | Yes                | Regression-critical                        |
+| Checkout               | Yes             | Yes                | Regression-critical                        |
+| Order Confirmation     | Yes             | Yes                | End-to-end purchase validation             |
+| Wishlist               | Yes             | No                 | Non-blocking user convenience feature      |
+| Product Specifications | Yes             | No                 | Static informational content               |
+| User Profile           | Yes             | No                 | Frontend-only, medium risk                 |
+| Reviews                | Yes             | No                 | Async UI, non-blocking                     |
 
 ---
 
@@ -55,6 +49,7 @@ Non-critical or UI-heavy features are validated manually as part of smoke or exp
 - Wishlist, reviews, and profile features are not automated by design.
 - These features do not block core business flows and are more cost-effective to validate manually.
 - API-level testing is out of scope due to the frontend-only nature of the application.
+- No backend/user-scoped persistence: cart and wishlist are cleared on logout and not restored per user until backend support exists.
 
 ---
 

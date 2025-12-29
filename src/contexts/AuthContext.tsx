@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { User, validateLogin, registerUser } from '@/data/users';
+import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 
 const enableAuthChaos = import.meta.env.VITE_ENABLE_AUTH_CHAOS === "true";
 
@@ -24,6 +26,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [isLoading, setIsLoading] = useState(false);
+  const { clearCart } = useCart();
+  const { clearWishlist } = useWishlist();
 
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
@@ -85,7 +89,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = useCallback(() => {
     setUser(null);
     sessionStorage.removeItem('currentUser');
-  }, []);
+    clearCart();
+    clearWishlist();
+  }, [clearCart, clearWishlist]);
 
   return (
     <AuthContext.Provider
