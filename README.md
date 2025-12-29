@@ -107,12 +107,12 @@ See README_QA.md for a detailed overview of the QA approach, test coverage, and 
 ## Project Structure (Simplified)
 
 /
-├── src/                Application source code
-├── automation/         Playwright tests
-├── qa/                 QA artifacts (test plans, test cases, bug reports)
-├── .github/            CI workflows
-├── README.md
-└── README_QA.md
+- src/                Application source code
+- automation/         Playwright tests
+- qa/                 QA artifacts (test plans, test cases, bug reports)
+- .github/            CI workflows
+- README.md
+- README_QA.md
 
 ---
 
@@ -132,3 +132,5 @@ This repository is intended for:
 TechStore is not a production-ready e-commerce platform.
 
 It is a **deliberately designed QA practice project** that demonstrates how quality is planned, validated, automated, and maintained in a real-world development workflow.
+
+All state is stored client-side (mock data); cart and wishlist are cleared on logout and are not persisted per user until backend support exists.
