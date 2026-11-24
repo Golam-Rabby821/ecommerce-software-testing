@@ -527,7 +527,7 @@ export const defectCaseStudies: DefectCaseStudy[] = [
 export const ciPipelineStages: CIPipelineStage[] = [
   {
     step: '01 · Checkout & Deterministic Install',
-    command: 'npm ci && npx playwright install --with-deps chromium',
+    command: 'npm ci && npx playwright install chromium',
     purpose: 'Pins lockfile dependencies and provisions Chromium on ubuntu-24.04.',
   },
   {
