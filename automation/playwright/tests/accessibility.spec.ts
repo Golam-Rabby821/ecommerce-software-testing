@@ -8,6 +8,7 @@ const routesToAudit = [
 	{ name: "Product Detail", path: "/product/prod-001" },
 	{ name: "Auth Login", path: "/auth?mode=login" },
 	{ name: "QA Engineering Dossier", path: "/qa-dossier" },
+	{ name: "Not Found 404", path: "/route-does-not-exist" },
 ];
 
 test.describe("WCAG 2.1 A/AA Accessibility Audit", () => {
