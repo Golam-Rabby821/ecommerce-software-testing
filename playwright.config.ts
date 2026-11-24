@@ -4,7 +4,7 @@ export default defineConfig({
 	testDir: "./automation/playwright/tests",
 	timeout: 30 * 1000,
 	retries: process.env.CI ? 1 : 0,
-	reporter: "html",
+	reporter: [["html"], ["./automation/playwright/reporters/summary-reporter.ts"]],
 	use: {
 		headless: true,
 		viewport: { width: 1280, height: 720 },

@@ -14,15 +14,18 @@ import {
   Trash2,
   FileText,
   AlertTriangle,
+  Compass,
+  Download,
+  Play,
 } from 'lucide-react';
-import { useQALab, QALabConfig } from '@/contexts/QALabContext';
+import { useQALab, QALabBooleanKey, LatencyPreset } from '@/contexts/QALabContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { products } from '@/data/products';
 import { useToast } from '@/hooks/use-toast';
 
-type LabTab = 'chaos' | 'inspector' | 'telemetry';
+type LabTab = 'chaos' | 'missions' | 'inspector' | 'telemetry';
 
 interface ToggleRowProps {
   id: string;
@@ -48,7 +51,7 @@ const ToggleRow: React.FC<ToggleRowProps> = ({
       ? 'bg-amber-500'
       : tone === 'neutral'
       ? 'bg-emerald-500'
-      : 'bg-[#E04F26]';
+      : 'bg-[#C83E14]';
 
   return (
     <div className="flex items-start justify-between gap-4 rounded-md border border-zinc-800 bg-zinc-900/70 p-3">
@@ -85,10 +88,14 @@ export const QALabDrawer: React.FC = () => {
     isDrawerOpen,
     setDrawerOpen,
     toggleConfig,
+    setConfigFlag,
+    setLatencyMs,
+    setActiveMission,
     resetConfig,
     events,
     clearEvents,
     logEvent,
+    buildDiagnosticSnapshot,
     activeChaosCount,
   } = useQALab();
   const { user, isAuthenticated, login, logout } = useAuth();
@@ -145,6 +152,7 @@ export const QALabDrawer: React.FC = () => {
     }
     clearCart();
     clearWishlist();
+    setActiveMission(null);
     resetConfig();
     logEvent('LAB', 'FULL_RESET', 'Cleared user session, cart, wishlist, and lab flags.');
     toast({
@@ -153,8 +161,79 @@ export const QALabDrawer: React.FC = () => {
     });
   };
 
+  const handleStartBug001Mission = async () => {
+    setConfigFlag('forceNextFailure', false);
+    setConfigFlag('authChaos', false);
+    setConfigFlag('cartChaos', false);
+    setConfigFlag('simulateLogoutBug', true);
+
+    if (!isAuthenticated) {
+      await login('test@example.com', 'Password123!');
+    }
+    if (itemCount === 0 && products[0]) {
+      await addToCart(products[0], 1);
+    }
+    setActiveMission('bug-001');
+    setDrawerOpen(false);
+    navigate('/');
+    toast({
+      title: 'Mission 01 Active: BUG-001 Replay',
+      description: 'Click Logout in the header, then open /cart to observe the pre-fix leak.',
+    });
+  };
+
+  const handleStartCheckoutChaosMission = async () => {
+    setConfigFlag('simulateLogoutBug', false);
+    setConfigFlag('authChaos', false);
+    setConfigFlag('cartChaos', false);
+
+    if (!isAuthenticated) {
+      await login('test@example.com', 'Password123!');
+    }
+    if (itemCount === 0 && products[0]) {
+      await addToCart(products[0], 1);
+    }
+    setConfigFlag('forceNextFailure', true);
+    setActiveMission('checkout-chaos');
+    setDrawerOpen(false);
+    navigate('/checkout');
+    toast({
+      title: 'Mission 02 Active: Checkout Resilience',
+      description: 'Submit shipping & click Place Order to trigger the deterministic payment decline.',
+    });
+  };
+
+  const handleStartStockGuardMission = () => {
+    setActiveMission('stock-guard');
+    setDrawerOpen(false);
+    navigate('/product/prod-004');
+    toast({
+      title: 'Mission 03 Active: Stock Boundary Guard',
+      description: 'Inspect out-of-stock prod-004, then switch to low-stock prod-002.',
+    });
+  };
+
+  const handleExportSnapshot = () => {
+    const payload = buildDiagnosticSnapshot({
+      storage: {
+        authenticatedUser: user?.email || null,
+        cartItemCount: itemCount,
+        cartSubtotal: Number(subtotal.toFixed(2)),
+        wishlistCount: wishlistItems.length,
+      },
+    });
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `techstore-qa-snapshot-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    logEvent('LAB', 'SNAPSHOT_EXPORTED', 'Downloaded JSON diagnostic bundle for defect reporting');
+  };
+
   const toggleItems: Array<{
-    key: keyof QALabConfig;
+    key: QALabBooleanKey;
     testId: string;
     label: string;
     description: string;
@@ -164,7 +243,7 @@ export const QALabDrawer: React.FC = () => {
       key: 'forceNextFailure',
       testId: 'qa-toggle-force-failure',
       label: 'Force Next Error (100%)',
-      description: 'Deterministically fails the very next login, cart add, or checkout submission, then auto-resets.',
+      description: 'Deterministically fails the very next login, cart add, review, or checkout submission, then auto-resets.',
       tone: 'vermilion',
     },
     {
@@ -186,19 +265,18 @@ export const QALabDrawer: React.FC = () => {
       description: 'Simulates payment gateway timeout or decline on Place Order.',
     },
     {
-      key: 'networkLatency',
-      testId: 'qa-toggle-latency',
-      label: 'Simulated Network Latency',
-      description: 'Enables skeleton loading states and async delays across catalog and detail views.',
-      tone: 'amber',
-    },
-    {
       key: 'simulateLogoutBug',
       testId: 'qa-toggle-logout-bug',
       label: 'Replay BUG-001 / 002 (Logout Leak)',
       description: 'Reverts logout to pre-fix behavior: cart & wishlist remain populated after signing out.',
       tone: 'amber',
     },
+  ];
+
+  const latencyPresets: Array<{ ms: LatencyPreset; label: string }> = [
+    { ms: 0, label: '0ms (Instant)' },
+    { ms: 600, label: '600ms (3G)' },
+    { ms: 2000, label: '2000ms (Slow)' },
   ];
 
   return (
@@ -221,7 +299,7 @@ export const QALabDrawer: React.FC = () => {
         <FlaskConical className="h-3.5 w-3.5 text-zinc-300" aria-hidden="true" />
         <span className="font-mono tracking-tight">QA Lab</span>
         {activeChaosCount > 0 && (
-          <span className="rounded bg-[#E04F26] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
+          <span className="rounded bg-[#C83E14] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
             {activeChaosCount}
           </span>
         )}
@@ -248,7 +326,7 @@ export const QALabDrawer: React.FC = () => {
           <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded border border-zinc-700 bg-zinc-900">
-                <FlaskConical className="h-4 w-4 text-[#E04F26]" aria-hidden="true" />
+                <FlaskConical className="h-4 w-4 text-[#ff8663]" aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold tracking-tight text-zinc-100">
@@ -272,11 +350,12 @@ export const QALabDrawer: React.FC = () => {
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="grid grid-cols-3 border-b border-zinc-800 bg-zinc-950/60 px-2 pt-2">
+          {/* 4-Tab Bar */}
+          <div className="grid grid-cols-4 border-b border-zinc-800 bg-zinc-950/60 px-2 pt-2">
             {(
               [
                 { id: 'chaos', label: 'Chaos', icon: Zap },
+                { id: 'missions', label: 'Missions', icon: Compass },
                 { id: 'inspector', label: 'Inspector', icon: Database },
                 { id: 'telemetry', label: 'Telemetry', icon: Activity },
               ] as const
@@ -286,13 +365,13 @@ export const QALabDrawer: React.FC = () => {
                 type="button"
                 onClick={() => setActiveTab(id)}
                 data-testid={`qa-tab-${id}`}
-                className={`flex items-center justify-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors ${
+                className={`flex items-center justify-center gap-1 border-b-2 px-2 py-2 text-[11px] font-medium transition-colors ${
                   activeTab === id
-                    ? 'border-[#E04F26] text-zinc-100'
+                    ? 'border-[#C83E14] text-zinc-100'
                     : 'border-transparent text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 {label}
               </button>
             ))}
@@ -309,6 +388,35 @@ export const QALabDrawer: React.FC = () => {
                   </div>
                   Defaults stay deterministic for Playwright CI. Toggle switches below to verify
                   error states, loading skeletons, or replay resolved defects live.
+                </div>
+
+                {/* Multi-speed Latency Preset Selector */}
+                <div className="rounded-md border border-zinc-800 bg-zinc-900/70 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-zinc-100">
+                      Simulated Network Latency
+                    </span>
+                    <span className="font-mono text-[11px] text-zinc-400">
+                      {config.latencyMs}ms
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {latencyPresets.map((preset) => (
+                      <button
+                        key={preset.ms}
+                        type="button"
+                        onClick={() => setLatencyMs(preset.ms)}
+                        data-testid={`qa-latency-${preset.ms}`}
+                        className={`rounded border px-2 py-1.5 font-mono text-[11px] transition-colors ${
+                          config.latencyMs === preset.ms
+                            ? 'border-amber-400 bg-amber-500/20 text-amber-200 font-semibold'
+                            : 'border-zinc-700 bg-zinc-950 text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2.5">
@@ -340,13 +448,93 @@ export const QALabDrawer: React.FC = () => {
               </>
             )}
 
+            {activeTab === 'missions' && (
+              <div className="space-y-3">
+                <p className="text-[11px] text-zinc-300 leading-relaxed">
+                  Launch a guided QA mission to auto-seed test state and track live verification steps across the storefront.
+                </p>
+
+                <div className="rounded-md border border-zinc-800 bg-zinc-900/70 p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] font-semibold text-amber-300">
+                      MISSION 01 · BUG-001 / 002
+                    </span>
+                    <span className="font-mono text-[10px] text-zinc-400">Session Isolation</span>
+                  </div>
+                  <p className="text-xs font-semibold text-zinc-100">
+                    Reproduce &amp; Verify Logout Session Leak
+                  </p>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Signs you in, seeds cart, enables pre-fix logout replay so you can observe the leak, then lets you toggle it off to verify the fix.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleStartBug001Mission}
+                    data-testid="qa-start-mission-bug-001"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded bg-[#C83E14] px-3 py-2 text-xs font-semibold text-white hover:bg-[#ad3610]"
+                  >
+                    <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                    Launch BUG-001 Mission
+                  </button>
+                </div>
+
+                <div className="rounded-md border border-zinc-800 bg-zinc-900/70 p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] font-semibold text-[#ff8663]">
+                      MISSION 02 · TC-CHK-005
+                    </span>
+                    <span className="font-mono text-[10px] text-zinc-400">Fault Resilience</span>
+                  </div>
+                  <p className="text-xs font-semibold text-zinc-100">
+                    Checkout Payment Failure &amp; Retry
+                  </p>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Arms deterministic Force Next Error, seeds cart, and jumps to /checkout so you can verify payment decline preserves cart state for retry.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleStartCheckoutChaosMission}
+                    data-testid="qa-start-mission-checkout-chaos"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-100 hover:bg-zinc-800"
+                  >
+                    <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                    Launch Checkout Chaos Mission
+                  </button>
+                </div>
+
+                <div className="rounded-md border border-zinc-800 bg-zinc-900/70 p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] font-semibold text-emerald-300">
+                      MISSION 03 · TC-PD-002 / 003
+                    </span>
+                    <span className="font-mono text-[10px] text-zinc-400">Boundary Checks</span>
+                  </div>
+                  <p className="text-xs font-semibold text-zinc-100">
+                    Out-of-Stock &amp; Quantity Clamping
+                  </p>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Walks directly through disabled purchase controls on zero-stock hardware and upper-bound stock limits.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleStartStockGuardMission}
+                    data-testid="qa-start-mission-stock-guard"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-100 hover:bg-zinc-800"
+                  >
+                    <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                    Launch Stock Guard Mission
+                  </button>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'inspector' && (
               <>
                 <ToggleRow
                   id="switch-xrayMode"
                   testId="qa-toggle-xray"
-                  label="data-testid X-Ray Overlay"
-                  description="Highlights every testability selector directly on the live storefront DOM."
+                  label="Playwright Locator X-Ray"
+                  description="Hover any element to inspect its getByTestId + ARIA role locator. Alt+Click copies the snippet."
                   checked={config.xrayMode}
                   onToggle={() => toggleConfig('xrayMode')}
                   tone="neutral"
@@ -436,17 +624,28 @@ export const QALabDrawer: React.FC = () => {
 
             {activeTab === 'telemetry' && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
                     Event Stream ({events.length})
                   </span>
-                  <button
-                    type="button"
-                    onClick={clearEvents}
-                    className="font-mono text-[11px] text-zinc-400 hover:text-zinc-200"
-                  >
-                    Clear
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleExportSnapshot}
+                      data-testid="qa-export-snapshot"
+                      className="inline-flex items-center gap-1 rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-[11px] text-zinc-200 hover:bg-zinc-800"
+                    >
+                      <Download className="h-3 w-3" aria-hidden="true" />
+                      Export JSON
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearEvents}
+                      className="font-mono text-[11px] text-zinc-400 hover:text-zinc-200"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
                 {events.length === 0 ? (
                   <p className="rounded-md border border-zinc-800 bg-zinc-900/50 p-4 text-center font-mono text-xs text-zinc-400">
@@ -463,8 +662,8 @@ export const QALabDrawer: React.FC = () => {
                           <span
                             className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                               ev.category === 'CHAOS'
-                                ? 'bg-[#E04F26]/20 text-[#ff8663]'
-                                : ev.category === 'SESSION'
+                                ? 'bg-[#C83E14]/25 text-[#ff8663]'
+                                : ev.category === 'SESSION' || ev.category === 'MISSION'
                                 ? 'bg-amber-500/20 text-amber-300'
                                 : 'bg-zinc-800 text-zinc-300'
                             }`}
@@ -486,12 +685,10 @@ export const QALabDrawer: React.FC = () => {
           <div className="border-t border-zinc-800 bg-zinc-950/80 px-5 py-3 flex items-center justify-between gap-2">
             <button
               type="button"
-              onClick={() => {
-                toggleConfig('xrayMode');
-              }}
+              onClick={() => toggleConfig('xrayMode')}
               className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] transition-colors ${
                 config.xrayMode
-                  ? 'bg-[#E04F26] text-white'
+                  ? 'bg-[#C83E14] text-white'
                   : 'border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
               }`}
             >

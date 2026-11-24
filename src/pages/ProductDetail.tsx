@@ -21,7 +21,7 @@ const ProductDetail: React.FC = () => {
   const { toast } = useToast();
 
   const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(config.networkLatency);
+  const [isLoading, setIsLoading] = useState(config.latencyMs > 0);
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [reviewVersion, setReviewVersion] = useState(0);
@@ -38,16 +38,16 @@ const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     setQuantity(1);
-    if (!config.networkLatency) {
+    if (config.latencyMs === 0) {
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, config.latencyMs);
     return () => clearTimeout(timer);
-  }, [id, config.networkLatency]);
+  }, [id, config.latencyMs]);
 
   const handleAddToCart = async () => {
     if (!product || product.stock === 0) return;

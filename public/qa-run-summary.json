@@ -1,0 +1,180 @@
+{
+  "generatedAt": "2026-11-24T19:28:27.557Z",
+  "browser": "Chromium",
+  "status": "passed",
+  "total": 21,
+  "passed": 21,
+  "failed": 0,
+  "skipped": 0,
+  "durationMs": 59014,
+  "suites": [
+    {
+      "file": "auth.setup.ts",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 9608,
+      "tests": [
+        {
+          "title": "auth seed",
+          "status": "passed",
+          "durationMs": 9608
+        }
+      ]
+    },
+    {
+      "file": "auth.spec.ts",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 11299,
+      "tests": [
+        {
+          "title": "TC-AUTH-001: user can log in with valid credentials",
+          "status": "passed",
+          "durationMs": 4618
+        },
+        {
+          "title": "TC-AUTH-002: invalid password is rejected with clear error",
+          "status": "passed",
+          "durationMs": 2051
+        },
+        {
+          "title": "TC-AUTH-003: unregistered email shows account-not-found error",
+          "status": "passed",
+          "durationMs": 2457
+        },
+        {
+          "title": "TC-AUTH-004: empty login form blocks submission and displays field errors",
+          "status": "passed",
+          "durationMs": 2173
+        }
+      ]
+    },
+    {
+      "file": "cart.spec.ts",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 10747,
+      "tests": [
+        {
+          "title": "TC-CART-001 / 007: add product to cart and retain state across navigation",
+          "status": "passed",
+          "durationMs": 5235
+        },
+        {
+          "title": "TC-CART-003 / 008: update quantity in cart and recalculate subtotal and total",
+          "status": "passed",
+          "durationMs": 3310
+        },
+        {
+          "title": "TC-PD-002: out-of-stock product disables Add to Cart and hides quantity selector",
+          "status": "passed",
+          "durationMs": 2202
+        }
+      ]
+    },
+    {
+      "file": "checkout.spec.ts",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 12872,
+      "tests": [
+        {
+          "title": "TC-CHK-001 / TC-ORD-001: authenticated user places an order and cart clears",
+          "status": "passed",
+          "durationMs": 7712
+        },
+        {
+          "title": "TC-CHK-002: missing shipping fields block transition to payment step",
+          "status": "passed",
+          "durationMs": 3303
+        },
+        {
+          "title": "TC-AUTH-009: unauthenticated access to /checkout redirects to login",
+          "status": "passed",
+          "durationMs": 1857
+        }
+      ]
+    },
+    {
+      "file": "accessibility.spec.ts",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 24368,
+      "tests": [
+        {
+          "title": "Storefront Home (/) has zero critical or serious axe violations",
+          "status": "passed",
+          "durationMs": 7110
+        },
+        {
+          "title": "Product Detail (/product/prod-001) has zero critical or serious axe violations",
+          "status": "passed",
+          "durationMs": 5530
+        },
+        {
+          "title": "Auth Login (/auth?mode=login) has zero critical or serious axe violations",
+          "status": "passed",
+          "durationMs": 3796
+        },
+        {
+          "title": "QA Engineering Dossier (/qa-dossier) has zero critical or serious axe violations",
+          "status": "passed",
+          "durationMs": 5131
+        },
+        {
+          "title": "Not Found 404 (/route-does-not-exist) has zero critical or serious axe violations",
+          "status": "passed",
+          "durationMs": 2801
+        }
+      ]
+    },
+    {
+      "file": "qa-dossier-and-chaos.spec.ts",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 9209,
+      "tests": [
+        {
+          "title": "QA Dossier displays coverage matrix, defect postmortems, live report, and filters test cases",
+          "status": "passed",
+          "durationMs": 2461
+        },
+        {
+          "title": "TC-CHK-005: Force Next Error shows override banner, fails cart add gracefully, and resets cleanly",
+          "status": "passed",
+          "durationMs": 3359
+        },
+        {
+          "title": "Guided BUG-001 mission activates live tracker and override banner reset clears flags",
+          "status": "passed",
+          "durationMs": 2090
+        },
+        {
+          "title": "Unknown route renders custom 404 page and recovers cleanly to storefront",
+          "status": "passed",
+          "durationMs": 1299
+        }
+      ]
+    },
+    {
+      "file": "session-isolation.spec.ts",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 4881,
+      "tests": [
+        {
+          "title": "TC-AUTH-008: logging out clears cart and wishlist and blocks protected checkout",
+          "status": "passed",
+          "durationMs": 4881
+        }
+      ]
+    }
+  ]
+}

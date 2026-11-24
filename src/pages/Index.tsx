@@ -29,27 +29,27 @@ const matchesPriceBracket = (price: number, bracket: PriceBracket): boolean => {
 };
 
 const Index: React.FC = () => {
-  const { config, setDrawerOpen } = useQALab();
+  const { config, setDrawerOpen, activeChaosCount } = useQALab();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [priceBracket, setPriceBracket] = useState<PriceBracket>('all');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(config.networkLatency);
+  const [isLoading, setIsLoading] = useState(config.latencyMs > 0);
 
   // Respect simulated latency only when enabled in QA Lab; deterministic 0ms otherwise
   useEffect(() => {
-    if (!config.networkLatency) {
+    if (config.latencyMs === 0) {
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 650);
+    }, config.latencyMs);
     return () => clearTimeout(timer);
-  }, [config.networkLatency]);
+  }, [config.latencyMs]);
 
   const filteredProducts = useMemo(() => {
     let result = products;
@@ -184,10 +184,12 @@ const Index: React.FC = () => {
                 </div>
                 <div className="rounded border border-border bg-card p-3">
                   <div className="text-muted-foreground text-[11px]">Runtime</div>
-                  <div className="mt-0.5 text-base font-semibold text-success">
-                    {config.authChaos || config.cartChaos || config.checkoutChaos
-                      ? 'Chaos ON'
-                      : 'Deterministic'}
+                  <div
+                    className={`mt-0.5 text-base font-semibold ${
+                      activeChaosCount > 0 ? 'text-accent' : 'text-success'
+                    }`}
+                  >
+                    {activeChaosCount > 0 ? 'Overrides ON' : 'Deterministic'}
                   </div>
                 </div>
               </div>

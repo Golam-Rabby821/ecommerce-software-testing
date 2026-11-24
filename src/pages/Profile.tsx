@@ -19,7 +19,7 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(config.networkLatency);
+  const [isLoading, setIsLoading] = useState(config.latencyMs > 0);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -47,7 +47,7 @@ const Profile: React.FC = () => {
 
       seedSampleOrders(user.id);
 
-      if (!config.networkLatency) {
+      if (config.latencyMs === 0) {
         setOrders(getOrdersByUserId(user.id));
         setIsLoading(false);
         return;
@@ -57,10 +57,10 @@ const Profile: React.FC = () => {
       const timer = setTimeout(() => {
         setOrders(getOrdersByUserId(user.id));
         setIsLoading(false);
-      }, 600);
+      }, config.latencyMs);
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, user, navigate, config.networkLatency]);
+  }, [isAuthenticated, user, navigate, config.latencyMs]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,8 +71,9 @@ const Profile: React.FC = () => {
     e.preventDefault();
     setIsSaving(true);
 
-    if (config.networkLatency || config.authChaos) {
-      await new Promise((resolve) => setTimeout(resolve, 650));
+    if (config.latencyMs > 0 || config.authChaos) {
+      const delay = config.latencyMs > 0 ? config.latencyMs : 650;
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     if (consumeForcedFailure('Profile.saveSettings') || (config.authChaos && Math.random() < 0.1)) {

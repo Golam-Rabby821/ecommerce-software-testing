@@ -68,8 +68,9 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
 
     setIsSubmitting(true);
 
-    if (config.networkLatency || config.authChaos) {
-      await new Promise((resolve) => setTimeout(resolve, 650 + Math.random() * 300));
+    if (config.latencyMs > 0 || config.authChaos) {
+      const delay = config.latencyMs > 0 ? config.latencyMs : 650 + Math.random() * 300;
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     if (consumeForcedFailure('Review.submit') || (config.authChaos && Math.random() < 0.1)) {

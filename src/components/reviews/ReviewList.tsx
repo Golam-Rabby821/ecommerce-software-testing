@@ -25,8 +25,8 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews, onReviewsUpdate
       return;
     }
 
-    if (config.networkLatency) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
+    if (config.latencyMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, Math.min(config.latencyMs, 600)));
     }
 
     const success = markReviewHelpful(reviewId);
