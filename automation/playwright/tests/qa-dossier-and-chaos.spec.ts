@@ -33,4 +33,16 @@ test.describe("QA Dossier & Live Chaos Controls", () => {
 		).toBeVisible();
 		await expect(page.getByTestId("cart-count")).toHaveCount(0);
 	});
+
+	test("Unknown route renders custom 404 page and recovers cleanly to storefront", async ({
+		page,
+	}) => {
+		await page.goto("/non-existent-route");
+
+		await expect(page.getByTestId("not-found-page")).toBeVisible();
+		await expect(page.getByTestId("not-found-path")).toHaveText("/non-existent-route");
+
+		await page.getByTestId("not-found-home-button").click();
+		await expect(page).toHaveURL("/");
+	});
 });
