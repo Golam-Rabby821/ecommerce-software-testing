@@ -28,27 +28,26 @@ export const CartSummary: React.FC = () => {
   };
 
   return (
-    <div 
-      className="rounded-xl border border-border bg-card p-6 sticky top-24"
+    <div
+      className="rounded-lg border border-border bg-card p-6 shadow-sm sticky top-24"
       data-testid="cart-summary"
     >
       <h2 className="font-display text-lg font-bold mb-4">Order Summary</h2>
 
-      {/* Free Shipping Progress */}
       {subtotal < SHIPPING_THRESHOLD && subtotal > 0 && (
-        <div 
-          className="mb-4 rounded-lg bg-primary/10 p-3"
+        <div
+          className="mb-4 rounded-md border border-border bg-secondary/60 p-3"
           data-testid="free-shipping-message"
         >
-          <div className="flex items-center gap-2 text-sm">
-            <Truck className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-2 text-xs text-foreground">
+            <Truck className="h-4 w-4 text-accent shrink-0" aria-hidden="true" />
             <span>
-              Add <strong>${amountToFreeShipping.toFixed(2)}</strong> more for free shipping!
+              Add <strong className="font-mono">${amountToFreeShipping.toFixed(2)}</strong> more for free shipping
             </span>
           </div>
-          <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-            <div 
-              className="h-full bg-primary rounded-full transition-all duration-500"
+          <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full bg-foreground rounded-full transition-all duration-500"
               style={{ width: `${(subtotal / SHIPPING_THRESHOLD) * 100}%` }}
               data-testid="shipping-progress-bar"
             />
@@ -57,68 +56,56 @@ export const CartSummary: React.FC = () => {
       )}
 
       {subtotal >= SHIPPING_THRESHOLD && (
-        <div 
-          className="mb-4 rounded-lg bg-success/10 p-3 flex items-center gap-2 text-sm text-success"
+        <div
+          className="mb-4 rounded-md border border-success/30 bg-success/10 p-3 flex items-center gap-2 text-xs font-medium text-success"
           data-testid="free-shipping-eligible"
         >
-          <Truck className="h-4 w-4" />
-          <span>You qualify for free shipping!</span>
+          <Truck className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>Qualified for complimentary shipping</span>
         </div>
       )}
 
-      {/* Price Breakdown */}
       <div className="space-y-3 text-sm">
-        <div 
-          className="flex justify-between"
-          data-testid="cart-subtotal"
-        >
+        <div className="flex justify-between" data-testid="cart-subtotal">
           <span className="text-muted-foreground">Subtotal ({itemCount} items)</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span className="font-mono tabular-nums">${subtotal.toFixed(2)}</span>
         </div>
-        <div 
-          className="flex justify-between"
-          data-testid="cart-shipping"
-        >
+        <div className="flex justify-between" data-testid="cart-shipping">
           <span className="text-muted-foreground">Shipping</span>
-          <span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+          <span className="font-mono tabular-nums">
+            {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+          </span>
         </div>
-        <div 
-          className="flex justify-between"
-          data-testid="cart-tax"
-        >
-          <span className="text-muted-foreground">Estimated Tax</span>
-          <span>${tax.toFixed(2)}</span>
+        <div className="flex justify-between" data-testid="cart-tax">
+          <span className="text-muted-foreground">Estimated Tax (8%)</span>
+          <span className="font-mono tabular-nums">${tax.toFixed(2)}</span>
         </div>
         <div className="border-t border-border pt-3">
-          <div 
+          <div
             className="flex justify-between font-display font-bold text-lg"
             data-testid="cart-total"
           >
             <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span className="font-mono tabular-nums">${total.toFixed(2)}</span>
           </div>
         </div>
       </div>
 
-      {/* Checkout Button */}
       <Button
-        variant="accent"
+        variant="default"
         size="lg"
         className="w-full mt-6"
         onClick={handleCheckout}
         disabled={itemCount === 0}
         data-testid="checkout-button"
       >
-        <ShoppingBag className="h-5 w-5 mr-2" />
+        <ShoppingBag className="h-4 w-4" aria-hidden="true" />
         {isAuthenticated ? 'Proceed to Checkout' : 'Login to Checkout'}
       </Button>
 
       {!isAuthenticated && itemCount > 0 && (
-        <p 
-          className="mt-3 text-center text-xs text-muted-foreground"
-          data-testid="login-prompt"
-        >
-          You'll need to log in to complete your purchase
+        <p className="mt-3 text-center text-xs text-muted-foreground" data-testid="login-prompt">
+          Sign in required before checkout
         </p>
       )}
     </div>

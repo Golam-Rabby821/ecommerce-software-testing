@@ -32,8 +32,5 @@ export default defineConfig({
 			},
 			dependencies: ["setup"],
 		},
-		// add another project here if you need a clean/unauth run
-		// { name: "chromium-unauth", testDir: "./automation/playwright/tests", use: { browserName: "chromium", storageState: undefined } },
 	],
 });
-  

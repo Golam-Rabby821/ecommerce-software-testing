@@ -1,50 +1,37 @@
-# TechStore
+# TechStore — Precision Hardware & QA Engineering Showcase
 
-TechStore is a sample e-commerce storefront built specifically for **software testing practice and QA portfolio development**.
+TechStore is a curated hardware storefront engineered specifically as a **Quality Assurance & Test Automation portfolio System Under Test (SUT)**.
 
-The project simulates a real-world frontend application and is used to demonstrate **industry-grade Quality Assurance workflows**, including test planning, manual testing, regression analysis, and CI-backed end-to-end automation.
+Beyond simulating a clean e-commerce purchase flow, the application embeds its QA engineering artifacts directly into the live experience: a dedicated **QA Dossier** (`/qa-dossier`), a live **QA Control Lab** (runtime chaos injection, `data-testid` X-Ray overlay, storage inspector, and historical bug replay), and a CI-enforced **Playwright TypeScript + Accessibility** suite.
 
-NOTE: This application uses mock data only. No real transactions or backend services are involved.
-
----
-
-## Project Goals
-
-This project is designed to showcase:
-
-- How QA is performed in a real software team
-- Risk-based test planning and regression identification
-- Well-structured manual test cases
-- End-to-end automation using Playwright
-- CI-integrated test execution
-- Bug reporting and QA documentation
-- Clear decisions on what to automate versus what to test manually
-
-The focus is **quality engineering**, not feature completeness.
+> **NOTE:** This application uses mock data and client-side state (`sessionStorage` / `localStorage`). No real transactions or backend services are involved.
 
 ---
 
-## Application Features
+## Key QA & Engineering Capabilities
 
-- Product listing and product details
-- Cart management and checkout flow
-- Order confirmation
-- Wishlist functionality
-- User profile section
-- Product specifications and reviews
-
-These features exist to support realistic testing scenarios.
+- **Built-In QA Engineering Dossier (`/qa-dossier`)**
+  - Interactive Risk-Based Regression Coverage Matrix (`P0 Critical`, `P1 High`, `P2 Medium`)
+  - Searchable catalog of **29 manual test cases** mapped to automated specs
+  - Documented session-isolation defect postmortems (`BUG-001` & `BUG-002`)
+  - CI pipeline architecture & release exit criteria
+- **Live QA Control Lab Drawer**
+  - Runtime chaos toggles (`Auth Chaos`, `Cart Chaos`, `Checkout Chaos`, `Simulated Network Latency`, and deterministic `Force Next Error`)
+  - **`data-testid` X-Ray Mode** highlighting testability hooks directly on the live DOM
+  - Live `sessionStorage` / `localStorage` snapshot, quick test-user sign-in, cart seeding, and **BUG-001/002 Logout Leak Replay**
+- **Storefront Capabilities**
+  - Product catalog with search, category chips, price brackets, in-stock toggle, and sorting
+  - Synchronized ratings and customer reviews across cards and detail views
+  - Cart management with stock clamping, free-shipping threshold ($100), and tax calculation (8%)
+  - Multi-step checkout with Zod schema validation and order confirmation
 
 ---
 
 ## Tech Stack
 
-- Vite
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Playwright (End-to-End Testing)
+- Vite + React + TypeScript
+- Tailwind CSS + shadcn/ui
+- Playwright (TypeScript E2E Automation) + `@axe-core/playwright` (WCAG 2.1 A/AA)
 - GitHub Actions (Continuous Integration)
 
 ---
@@ -56,81 +43,50 @@ These features exist to support realistic testing scenarios.
 - Node.js (LTS recommended)
 - npm
 
-### Installation
+### Installation & Local Server
 
+```bash
 npm install
-
-### Start the Development Server
-
 npm run dev
+```
 
-The application will be available at:
-
-http://localhost:8080
+Application URL: `http://localhost:8080`
 
 ---
 
 ## Scripts
 
-- npm run dev      Start the development server
-- npm run build    Build the app for production
-- npm run preview  Preview the production build
-- npm run lint     Run lint checks
-- npx playwright test  Run end-to-end tests
+- `npm run dev` — Start the Vite development server
+- `npm run build` — Build the production bundle
+- `npm run lint` — Run ESLint checks
+- `npm run test:e2e` — Run the Playwright E2E and Accessibility test suite
+- `npm run test:e2e:headed` — Run Playwright tests in headed Chromium
+- `npm run test:e2e:ui` — Open Playwright interactive UI mode
+- `npm run test:e2e:report` — View the latest Playwright HTML report
 
 ---
 
-## Quality Assurance
+## Project Structure
 
-This project includes a **complete QA strategy**, covering:
-
-- Test planning
-- Manual test cases
-- Regression analysis
-- End-to-end automation
-- CI integration
-- Bug reporting
-
-See README_QA.md for a detailed overview of the QA approach, test coverage, and automation strategy.
-
----
-
-## Continuous Integration
-
-- Playwright tests run automatically via GitHub Actions
-- Application startup is managed by Playwright webServer
-- HTML test reports are uploaded as CI artifacts
-- Tests are designed to be deterministic and stable
+```text
+├── .github/workflows/playwright.yml   # CI pipeline running npm run test:e2e
+├── automation/playwright/
+│   ├── fixtures/auth.fixture.ts       # Shared storageState + sessionStorage fixture
+│   ├── pages/                         # Page Objects (ShopPage, CheckoutPage)
+│   ├── setup/auth.setup.ts            # Global login seed
+│   └── tests/                         # E2E, session-isolation, chaos & axe a11y specs
+├── qa/
+│   ├── bug-reports/                   # Resolved session-isolation defect reports
+│   ├── coverage/regression-coverage.md
+│   ├── test-cases/manual-test-cases.md
+│   └── test-plan/test-plan.md
+└── src/
+    ├── components/qa/QALabDrawer.tsx  # Live Chaos, X-Ray, State Inspector & Telemetry
+    └── pages/QADossier.tsx            # Interactive QA Engineering Dossier (/qa-dossier)
+```
 
 ---
 
-## Project Structure (Simplified)
+## Quality Assurance & CI
 
-/
-- src/                Application source code
-- automation/         Playwright tests
-- qa/                 QA artifacts (test plans, test cases, bug reports)
-- .github/            CI workflows
-- README.md
-- README_QA.md
-
----
-
-## Intended Audience
-
-This repository is intended for:
-
-- Junior QA Engineers
-- QA trainees
-- Anyone learning software testing and QA automation
-- Recruiters reviewing QA portfolios
-
----
-
-## Final Notes
-
-TechStore is not a production-ready e-commerce platform.
-
-It is a **deliberately designed QA practice project** that demonstrates how quality is planned, validated, automated, and maintained in a real-world development workflow.
-
-All state is stored client-side (mock data); cart and wishlist are cleared on logout and are not persisted per user until backend support exists.
+See [README_QA.md](README_QA.md) for the complete QA strategy, risk-based coverage rationale, and automation design.

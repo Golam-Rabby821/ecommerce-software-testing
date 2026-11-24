@@ -16,8 +16,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   if (totalPages <= 1) return null;
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-  
-  // Show max 5 page buttons
+
   let visiblePages = pages;
   if (totalPages > 5) {
     const start = Math.max(1, currentPage - 2);
@@ -26,8 +25,9 @@ export const Pagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div 
-      className="mt-8 flex items-center justify-center gap-2"
+    <nav
+      aria-label="Catalog pagination"
+      className="mt-10 flex items-center justify-center gap-2"
       data-testid="pagination"
     >
       <Button
@@ -48,11 +48,14 @@ export const Pagination: React.FC<PaginationProps> = ({
             size="sm"
             onClick={() => onPageChange(1)}
             data-testid="pagination-page-1"
+            className="font-mono"
           >
             1
           </Button>
           {visiblePages[0] > 2 && (
-            <span className="px-2 text-muted-foreground" data-testid="pagination-ellipsis-start">...</span>
+            <span className="px-2 text-muted-foreground" data-testid="pagination-ellipsis-start">
+              ...
+            </span>
           )}
         </>
       )}
@@ -64,6 +67,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           size="sm"
           onClick={() => onPageChange(page)}
           data-testid={`pagination-page-${page}`}
+          className="font-mono"
         >
           {page}
         </Button>
@@ -72,13 +76,16 @@ export const Pagination: React.FC<PaginationProps> = ({
       {visiblePages[visiblePages.length - 1] < totalPages && (
         <>
           {visiblePages[visiblePages.length - 1] < totalPages - 1 && (
-            <span className="px-2 text-muted-foreground" data-testid="pagination-ellipsis-end">...</span>
+            <span className="px-2 text-muted-foreground" data-testid="pagination-ellipsis-end">
+              ...
+            </span>
           )}
           <Button
             variant={currentPage === totalPages ? 'default' : 'outline'}
             size="sm"
             onClick={() => onPageChange(totalPages)}
             data-testid={`pagination-page-${totalPages}`}
+            className="font-mono"
           >
             {totalPages}
           </Button>
@@ -96,12 +103,12 @@ export const Pagination: React.FC<PaginationProps> = ({
         <ChevronRight className="h-4 w-4" />
       </Button>
 
-      <span 
-        className="ml-4 text-sm text-muted-foreground"
+      <span
+        className="ml-3 font-mono text-xs text-muted-foreground tabular-nums"
         data-testid="pagination-info"
       >
         Page {currentPage} of {totalPages}
       </span>
-    </div>
+    </nav>
   );
 };

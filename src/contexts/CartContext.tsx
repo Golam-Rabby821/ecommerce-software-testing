@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { Product } from '@/data/products';
-
-const enableCartChaos = import.meta.env.VITE_ENABLE_CART_CHAOS === "true";
+import { useQALab } from '@/contexts/QALabContext';
 
 export interface CartItem {
   product: Product;
@@ -36,6 +35,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return savedCart ? JSON.parse(savedCart) : [];
   });
   const [isLoading, setIsLoading] = useState(false);
+  const { config, consumeForcedFailure, logEvent } = useQALab();
 
   // Persist cart to session storage
   useEffect(() => {
@@ -43,63 +43,75 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [items]);
 
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
-  
+
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  
+
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const tax = subtotal * TAX_RATE;
   const total = subtotal + shipping + tax;
 
-  const addToCart = useCallback(async (product: Product, quantity = 1): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true);
-    
-    // Simulate network delay
-    if (enableCartChaos) {
-      await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
-    }
+  const addToCart = useCallback(
+    async (product: Product, quantity = 1): Promise<{ success: boolean; error?: string }> => {
+      setIsLoading(true);
 
-    // Simulate occasional failure (5% chance)
-    if (enableCartChaos && Math.random() < 0.05) {
-      setIsLoading(false);
-      return { success: false, error: 'Failed to add item to cart. Please try again.' };
-    }
-    
-    if (product.stock === 0) {
-      setIsLoading(false);
-      return { success: false, error: 'This item is out of stock.' };
-    }
-    
-    setItems(currentItems => {
-      const existingItem = currentItems.find(item => item.product.id === product.id);
-      
-      if (existingItem) {
-        const newQuantity = existingItem.quantity + quantity;
-        if (newQuantity > product.stock) {
-          return currentItems; // Don't exceed stock
-        }
-        return currentItems.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: newQuantity }
-            : item
-        );
+      if (config.cartChaos || config.networkLatency) {
+        await new Promise((resolve) => setTimeout(resolve, 350 + Math.random() * 250));
       }
-      
-      return [...currentItems, { product, quantity }];
-    });
-    
-    setIsLoading(false);
-    return { success: true };
-  }, []);
 
-  const removeFromCart = useCallback((productId: string) => {
-    setItems(currentItems => currentItems.filter(item => item.product.id !== productId));
-  }, []);
+      if (consumeForcedFailure('Cart.addToCart') || (config.cartChaos && Math.random() < 0.05)) {
+        setIsLoading(false);
+        logEvent('CHAOS', 'CART_ADD_FAILED', `Injected failure adding ${product.id}`);
+        return { success: false, error: 'Failed to add item to cart. Please try again.' };
+      }
+
+      if (product.stock === 0) {
+        setIsLoading(false);
+        return { success: false, error: 'This item is out of stock.' };
+      }
+
+      let stockExceeded = false;
+      setItems((currentItems) => {
+        const existingItem = currentItems.find((item) => item.product.id === product.id);
+
+        if (existingItem) {
+          const newQuantity = existingItem.quantity + quantity;
+          if (newQuantity > product.stock) {
+            stockExceeded = true;
+            return currentItems;
+          }
+          return currentItems.map((item) =>
+            item.product.id === product.id ? { ...item, quantity: newQuantity } : item
+          );
+        }
+
+        const clampedQty = Math.min(quantity, product.stock);
+        return [...currentItems, { product, quantity: clampedQty }];
+      });
+
+      setIsLoading(false);
+      if (stockExceeded) {
+        return { success: false, error: `Cannot exceed available stock (${product.stock}).` };
+      }
+
+      logEvent('CART', 'CART_ADD', `Added ${quantity}x ${product.name}`);
+      return { success: true };
+    },
+    [config.cartChaos, config.networkLatency, consumeForcedFailure, logEvent]
+  );
+
+  const removeFromCart = useCallback(
+    (productId: string) => {
+      setItems((currentItems) => currentItems.filter((item) => item.product.id !== productId));
+      logEvent('CART', 'CART_REMOVE', `Removed ${productId} from cart`);
+    },
+    [logEvent]
+  );
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity < 1) return;
-    
-    setItems(currentItems =>
-      currentItems.map(item => {
+
+    setItems((currentItems) =>
+      currentItems.map((item) => {
         if (item.product.id === productId) {
           const newQuantity = Math.min(quantity, item.product.stock);
           return { ...item, quantity: newQuantity };
@@ -111,7 +123,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const clearCart = useCallback(() => {
     setItems([]);
-  }, []);
+    logEvent('CART', 'CART_CLEARED', 'Cart items cleared');
+  }, [logEvent]);
 
   return (
     <CartContext.Provider

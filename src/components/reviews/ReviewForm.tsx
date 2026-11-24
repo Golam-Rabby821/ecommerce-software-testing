@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQALab } from '@/contexts/QALabContext';
 import { addReview, hasUserReviewedProduct } from '@/data/reviews';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,6 +18,7 @@ interface ReviewFormProps {
 
 export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted }) => {
   const { user, isAuthenticated } = useAuth();
+  const { config, consumeForcedFailure } = useQALab();
   const { toast } = useToast();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -61,17 +64,15 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
       return;
     }
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
+    if (config.networkLatency || config.authChaos) {
+      await new Promise((resolve) => setTimeout(resolve, 650 + Math.random() * 300));
+    }
 
-    // Simulate occasional failure (10% chance)
-    if (Math.random() < 0.1) {
+    if (consumeForcedFailure('Review.submit') || (config.authChaos && Math.random() < 0.1)) {
       setIsSubmitting(false);
       toast({
         title: 'Submission failed',
@@ -95,7 +96,6 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
       description: 'Thank you for your feedback!',
     });
 
-    // Reset form
     setRating(0);
     setTitle('');
     setComment('');
@@ -106,13 +106,13 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
 
   if (!isAuthenticated) {
     return (
-      <Card data-testid="review-form-login-prompt">
-        <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground mb-4">
-            Please log in to write a review.
+      <Card data-testid="review-form-login-prompt" className="shadow-sm">
+        <CardContent className="py-6 text-center space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Sign in to publish a verified product review.
           </p>
-          <Button variant="outline" asChild>
-            <a href="/auth?mode=login">Log In</a>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/auth?mode=login">Log In</Link>
           </Button>
         </CardContent>
       </Card>
@@ -121,9 +121,9 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
 
   if (hasReviewed) {
     return (
-      <Card data-testid="review-form-already-reviewed">
-        <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">
+      <Card data-testid="review-form-already-reviewed" className="shadow-sm">
+        <CardContent className="py-6 text-center">
+          <p className="text-sm text-muted-foreground">
             You have already reviewed this product.
           </p>
         </CardContent>
@@ -132,13 +132,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
   }
 
   return (
-    <Card data-testid="review-form">
-      <CardHeader>
-        <CardTitle>Write a Review</CardTitle>
+    <Card data-testid="review-form" className="shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">Write a Review</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Rating */}
           <div className="space-y-2">
             <Label>Your Rating *</Label>
             <div className="flex items-center gap-1" data-testid="rating-selector">
@@ -154,28 +153,27 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
                   aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
                 >
                   <Star
-                    className={`h-8 w-8 transition-colors ${
+                    className={`h-6 w-6 transition-colors ${
                       star <= (hoveredRating || rating)
                         ? 'fill-accent text-accent'
-                        : 'text-muted-foreground'
+                        : 'text-muted-foreground/40'
                     }`}
                   />
                 </button>
               ))}
               {rating > 0 && (
-                <span className="ml-2 text-sm text-muted-foreground">
-                  {rating} star{rating > 1 ? 's' : ''}
+                <span className="ml-2 font-mono text-xs text-muted-foreground">
+                  {rating}/5
                 </span>
               )}
             </div>
             {errors.rating && (
-              <p className="text-sm text-destructive" data-testid="rating-error">
+              <p className="text-xs text-destructive" data-testid="rating-error">
                 {errors.rating}
               </p>
             )}
           </div>
 
-          {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="review-title">Review Title *</Label>
             <Input
@@ -187,36 +185,34 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmi
               data-testid="review-title-input"
             />
             {errors.title && (
-              <p className="text-sm text-destructive" data-testid="title-error">
+              <p className="text-xs text-destructive" data-testid="title-error">
                 {errors.title}
               </p>
             )}
           </div>
 
-          {/* Comment */}
           <div className="space-y-2">
             <Label htmlFor="review-comment">Your Review *</Label>
             <Textarea
               id="review-comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Tell others about your experience with this product..."
+              placeholder="Tell others about build quality and performance..."
               rows={4}
               maxLength={1000}
               data-testid="review-comment-input"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{errors.comment && <span className="text-destructive">{errors.comment}</span>}</span>
-              <span>{comment.length}/1000</span>
+              <span className="font-mono">{comment.length}/1000</span>
             </div>
           </div>
 
-          {/* Submit */}
           <Button
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className="w-full"
             data-testid="submit-review-button"
           >
             Submit Review

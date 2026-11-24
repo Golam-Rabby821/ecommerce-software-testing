@@ -21,32 +21,31 @@ const OrderConfirmation: React.FC = () => {
   const location = useLocation();
   const state = location.state as OrderState | null;
 
-  // If no state (direct access), show minimal confirmation
   if (!state) {
     return (
       <Layout>
-        <div 
+        <div
           className="container py-16 text-center"
           data-testid="order-confirmation-minimal"
         >
-          <div className="max-w-md mx-auto">
-            <div className="mb-6 inline-flex items-center justify-center rounded-full bg-success/10 p-6">
-              <CheckCircle className="h-16 w-16 text-success" />
+          <div className="max-w-md mx-auto rounded-lg border border-border bg-card p-8 shadow-sm">
+            <div className="mb-5 inline-flex items-center justify-center rounded-full bg-success/10 p-4">
+              <CheckCircle className="h-10 w-10 text-success" aria-hidden="true" />
             </div>
-            <h1 className="font-display text-3xl font-bold mb-4">Order Confirmed!</h1>
-            <p className="text-muted-foreground mb-2">
+            <h1 className="font-display text-2xl font-bold mb-2">Order Confirmed</h1>
+            <p className="text-sm text-muted-foreground mb-4">
               Your order has been placed successfully.
             </p>
-            <p 
-              className="font-mono text-lg font-medium mb-8"
+            <p
+              className="rounded bg-secondary px-3 py-2 font-mono text-sm font-medium mb-6"
               data-testid="order-id"
             >
-              Order ID: {orderId}
+              {orderId}
             </p>
             <Link to="/">
-              <Button size="lg" data-testid="continue-shopping-button">
+              <Button size="lg" className="w-full" data-testid="continue-shopping-button">
                 Continue Shopping
-                <ArrowRight className="h-5 w-5 ml-2" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
           </div>
@@ -57,41 +56,39 @@ const OrderConfirmation: React.FC = () => {
 
   return (
     <Layout>
-      <div 
-        className="container py-12"
+      <div
+        className="container py-10 md:py-12"
         data-testid="order-confirmation-page"
       >
-        {/* Success Header */}
-        <div className="text-center mb-12 animate-scaleIn">
-          <div className="mb-6 inline-flex items-center justify-center rounded-full bg-success/10 p-6">
-            <CheckCircle className="h-16 w-16 text-success" />
+        <div className="text-center mb-10 animate-scaleIn">
+          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-success/10 p-4">
+            <CheckCircle className="h-10 w-10 text-success" aria-hidden="true" />
           </div>
-          <h1 className="font-display text-3xl font-bold mb-4">Thank You for Your Order!</h1>
-          <p className="text-muted-foreground mb-2">
-            Your order has been placed successfully and is being processed.
+          <h1 className="font-display text-3xl font-bold mb-2">Order Confirmed</h1>
+          <p className="text-muted-foreground mb-3">
+            Your order has been placed successfully and is queued for fulfillment.
           </p>
-          <p 
-            className="font-mono text-lg font-medium"
+          <p
+            className="inline-block rounded-md border border-border bg-card px-4 py-1.5 font-mono text-sm font-medium"
             data-testid="confirmation-order-id"
           >
             Order ID: {state.orderId}
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
-          {/* Order Details */}
-          <div 
-            className="rounded-xl border border-border bg-card p-6"
+        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+          <div
+            className="rounded-lg border border-border bg-card p-6 shadow-sm"
             data-testid="order-items-summary"
           >
-            <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+              <Package className="h-4 w-4 text-foreground" aria-hidden="true" />
               Order Items
             </h2>
-            
+
             <div className="space-y-4 mb-6">
               {state.items.map((item) => (
-                <div 
+                <div
                   key={item.product.id}
                   className="flex gap-3"
                   data-testid={`confirmation-item-${item.product.id}`}
@@ -99,13 +96,15 @@ const OrderConfirmation: React.FC = () => {
                   <img
                     src={item.product.image}
                     alt={item.product.name}
-                    className="h-16 w-16 rounded-md object-cover"
+                    className="h-14 w-14 rounded-md border border-border object-cover"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{item.product.name}</p>
-                    <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                    <p className="text-sm font-medium truncate">{item.product.name}</p>
+                    <p className="font-mono text-xs text-muted-foreground">
+                      Qty: {item.quantity}
+                    </p>
                   </div>
-                  <p className="font-medium">
+                  <p className="font-mono text-sm font-medium tabular-nums">
                     ${(item.product.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
@@ -115,82 +114,81 @@ const OrderConfirmation: React.FC = () => {
             <div className="space-y-2 text-sm border-t border-border pt-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span data-testid="confirmation-subtotal">${state.subtotal.toFixed(2)}</span>
+                <span className="font-mono tabular-nums" data-testid="confirmation-subtotal">
+                  ${state.subtotal.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
-                <span data-testid="confirmation-shipping">
+                <span className="font-mono tabular-nums" data-testid="confirmation-shipping">
                   {state.shipping === 0 ? 'Free' : `$${state.shipping.toFixed(2)}`}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Tax</span>
-                <span data-testid="confirmation-tax">${state.tax.toFixed(2)}</span>
+                <span className="font-mono tabular-nums" data-testid="confirmation-tax">
+                  ${state.tax.toFixed(2)}
+                </span>
               </div>
-              <div className="flex justify-between font-display font-bold text-lg pt-2 border-t border-border">
+              <div className="flex justify-between font-display font-bold text-lg pt-3 border-t border-border">
                 <span>Total</span>
-                <span data-testid="confirmation-total">${state.total.toFixed(2)}</span>
+                <span className="font-mono tabular-nums" data-testid="confirmation-total">
+                  ${state.total.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Shipping & Next Steps */}
           <div className="space-y-6">
-            {/* Shipping Address */}
-            <div 
-              className="rounded-xl border border-border bg-card p-6"
+            <div
+              className="rounded-lg border border-border bg-card p-6 shadow-sm"
               data-testid="shipping-address-summary"
             >
-              <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
-                <Truck className="h-5 w-5 text-primary" />
-                Shipping Address
+              <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+                <Truck className="h-4 w-4 text-foreground" aria-hidden="true" />
+                Shipping Destination
               </h2>
-              <div className="text-muted-foreground">
+              <div className="text-sm text-muted-foreground space-y-0.5">
                 <p className="font-medium text-foreground">
                   {state.shippingAddress.firstName} {state.shippingAddress.lastName}
                 </p>
                 <p>{state.shippingAddress.address}</p>
                 <p>
-                  {state.shippingAddress.city}, {state.shippingAddress.state} {state.shippingAddress.zipCode}
+                  {state.shippingAddress.city}, {state.shippingAddress.state}{' '}
+                  {state.shippingAddress.zipCode}
                 </p>
-                <p>{state.shippingAddress.phone}</p>
+                <p className="font-mono text-xs pt-1">{state.shippingAddress.phone}</p>
               </div>
             </div>
 
-            {/* What's Next */}
-            <div 
-              className="rounded-xl border border-border bg-card p-6"
+            <div
+              className="rounded-lg border border-border bg-card p-6 shadow-sm"
               data-testid="whats-next"
             >
-              <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
-                <Mail className="h-5 w-5 text-primary" />
-                What's Next?
+              <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+                <Mail className="h-4 w-4 text-foreground" aria-hidden="true" />
+                Fulfillment Pipeline (Mocked)
               </h2>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
-                  <span>You'll receive an email confirmation shortly (mocked)</span>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2.5">
+                  <span className="font-mono text-xs font-semibold text-foreground mt-0.5">01</span>
+                  <span>Email receipt dispatched (mocked)</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
-                  <span>We'll notify you when your order ships (mocked)</span>
+                <li className="flex items-start gap-2.5">
+                  <span className="font-mono text-xs font-semibold text-foreground mt-0.5">02</span>
+                  <span>Tracking notification prepared (mocked)</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
-                  <span>Estimated delivery: 3-5 business days (mocked)</span>
+                <li className="flex items-start gap-2.5">
+                  <span className="font-mono text-xs font-semibold text-foreground mt-0.5">03</span>
+                  <span>Estimated delivery window: 3–5 business days</span>
                 </li>
               </ul>
             </div>
 
-            {/* Continue Shopping */}
             <Link to="/" className="block">
-              <Button 
-                size="lg" 
-                className="w-full"
-                data-testid="continue-shopping-button"
-              >
+              <Button size="lg" className="w-full" data-testid="continue-shopping-button">
                 Continue Shopping
-                <ArrowRight className="h-5 w-5 ml-2" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
           </div>

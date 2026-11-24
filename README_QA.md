@@ -1,24 +1,19 @@
-# QA Overview — E-commerce Testing Project
+# QA Overview — TechStore E-Commerce Testing Project
 
-This document describes the Quality Assurance (QA) strategy, processes, and tooling used for this e-commerce application.
+This document describes the Quality Assurance (QA) strategy, processes, tooling, and live testability features built into TechStore.
 
-This project is intentionally designed as a **QA-focused practice and portfolio project**, with the goal of demonstrating real-world QA workflows, decision-making, and engineering discipline rather than maximizing the number of tests.
+This project is intentionally designed as a **QA-focused engineering portfolio project**, demonstrating risk-based test prioritization, defect root-cause analysis, testability instrumentation, and deterministic CI automation.
 
 ---
 
 ## Project Purpose
 
-The primary objective of this project is to showcase how QA is performed in a real software development environment, including:
-
-- Test planning and risk analysis
-- Manual test case design
-- Regression identification and prioritization
-- End-to-end test automation
-- CI-integrated test execution
-- Bug reporting and QA documentation
-- Clear decisions on what to automate vs what to test manually
-
-The application uses mock data and frontend-only logic to support testing practice.
+- Risk-based test planning and regression prioritization
+- Structured manual test case design (`29` documented cases)
+- End-to-end automation with Playwright (TypeScript) and Page Objects
+- Automated WCAG 2.1 A/AA accessibility verification via `@axe-core/playwright`
+- Session-isolation defect postmortems and automated regression guards
+- Live observability and chaos engineering via the in-app **QA Dossier** (`/qa-dossier`) and **QA Control Lab**
 
 ---
 
@@ -26,78 +21,62 @@ The application uses mock data and frontend-only logic to support testing practi
 
 ### In Scope
 
-- Functional testing
-- Regression testing
-- UI and UX validation
-- Manual exploratory testing
-- CI-backed end-to-end automation
-- Bug documentation and reporting
+- Authentication & session-isolation controls
+- Product catalog filtering, search, stock locks, and synchronized reviews
+- Cart state persistence & pricing calculations
+- Multi-step checkout validation and order confirmation
+- Runtime chaos fault-handling and `data-testid` testability
+- WCAG 2.1 A/AA accessibility compliance on core routes
 
 ### Out of Scope
 
-- Performance testing
-- API testing (no real backend services)
-- Load or stress testing
-- Security penetration testing
+- Performance, load, or stress benchmarking
+- Real backend API or database testing (frontend-only mock data)
+- Real payment gateway processing
+- Network-level penetration testing
 
 ---
 
-## QA Folder Structure
+## Actual QA & Automation Folder Structure
 
+```text
 qa/
-- test-plan/
-  - test-plan.md
-- test-cases/
-  - authentication.md
-  - product-listing.md
-  - product-details.md
-  - cart.md
-  - checkout.md
-  - wishlist.md
-  - reviews.md
-- bug-reports/
-  - bug-001-example.md
-- coverage/
-  - regression-coverage.md
+├── bug-reports/
+│   ├── bug-cart-persists-after-logout.md
+│   └── bug-wishlist-persists-after-logout.md
+├── coverage/
+│   └── regression-coverage.md
+├── test-cases/
+│   └── manual-test-cases.md
+└── test-plan/
+    └── test-plan.md
 
----
-
-## Test Planning
-
-Detailed plan: `qa/test-plan/test-plan.md`
-
-The plan defines:
-
-- Test objectives
-- Test types and levels
-- Environments
-- Risks and assumptions
-- Regression-critical workflows
+automation/playwright/
+├── fixtures/
+│   └── auth.fixture.ts
+├── pages/
+│   ├── CheckoutPage.ts
+│   └── ShopPage.ts
+├── setup/
+│   └── auth.setup.ts
+└── tests/
+    ├── accessibility.spec.ts
+    ├── auth.spec.ts
+    ├── cart.spec.ts
+    ├── checkout.spec.ts
+    ├── qa-dossier-and-chaos.spec.ts
+    └── session-isolation.spec.ts
+```
 
 ---
 
 ## Regression-Critical Paths
 
-Highest-priority workflows:
+1. **Purchase Flow (`P0`)** — Login -> Browse Products -> Add to Cart -> Checkout -> Order Confirmation
+2. **Cart Integrity (`P0`)** — Add Item -> Update Quantity -> Navigate Pages -> Verify Totals & Stock Locks
+3. **Authentication & Session Isolation (`P0`)** — Login -> Access Protected Routes -> Logout -> Verify Cart & Wishlist Cleared & Access Blocked
 
-1. Purchase Flow — Login -> Browse Products -> Add to Cart -> Checkout -> Order Confirmation  
-2. Cart Integrity — Add Item -> Update Quantity -> Navigate Pages -> Cart State Retained  
-3. Authentication Flow — Login -> Access Protected Pages -> Logout -> Access Blocked
-
-Coverage decisions for these flows are in `qa/coverage/regression-coverage.md`.
-
----
-
-## Manual Testing Approach
-
-Manual test cases (Markdown) focus on functional validation, negative and edge scenarios, UI behavior, and regression awareness.
-
-Manual-first areas (non-blocking, UI-heavy):
-
-- Wishlist
-- Reviews
-- Product specifications
-- User profile
+Coverage decisions are documented in `qa/coverage/regression-coverage.md` and rendered interactively at `/qa-dossier`.
 
 ---
 
@@ -105,65 +84,19 @@ Manual-first areas (non-blocking, UI-heavy):
 
 ### Tools
 
-- Playwright (end-to-end automation)
-- GitHub Actions (CI)
-- Playwright HTML Report (CI artifacts)
+- **Playwright (TypeScript)** for cross-flow E2E verification
+- **`@axe-core/playwright`** for automated WCAG 2.1 A/AA accessibility gating
+- **GitHub Actions** (`.github/workflows/playwright.yml`) executing `npm run test:e2e`
 
 ### Principles
 
-- Automate regression-critical user journeys only
-- Assert user-visible behavior, not implementation details
-- Keep tests deterministic and CI-stable
-- Reuse global authentication state to reduce duplication
-
-### Automated Coverage
-
-- Authentication (login)
-- Cart regression flow
-- Checkout flow
-- Order confirmation
+- Shared `auth.fixture.ts` restores both `storageState` and `sessionStorage` without duplicating boilerplate across specs
+- Page Objects (`ShopPage`, `CheckoutPage`) encapsulate selectors cleanly
+- Zero `waitForTimeout` sleeps; deterministic by default in CI
+- Chaos injection (`.env.chaos` or live QA Control Lab toggles) stays off by default for CI stability and can be triggered deterministically (`Force Next Error`) during chaos tests
 
 ---
 
-## CI Integration
+## Bug Reporting & Session-Isolation Regression Guard
 
-- Playwright tests run in GitHub Actions
-- App startup handled via Playwright `webServer`
-- No sleep-based timing; tests are deterministic
-- HTML reports are published as CI artifacts
-
----
-
-## Handling Flakiness and Determinism
-
-Intentional “chaos” (random failures/delays) in auth and cart is gated behind env flags. Chaos is disabled by default for CI stability and can be enabled for exploratory testing.
-
----
-
-## Bug Reporting
-
-Bug reports live in `qa/bug-reports/` and include:
-
-- Summary and description
-- Severity and priority
-- Steps to reproduce
-- Expected vs actual behavior
-- Related issues and notes
-
-Recent fixes: cart and wishlist now clear on logout; no backend/user-scoped persistence yet, so these states are intentionally not restored after logout.
-
----
-
-## Key QA Learnings
-
-- Not all features should be automated
-- Regression risk should drive automation decisions
-- CI stability is as important as test correctness
-- Deterministic environments are critical for reliable E2E automation
-- Clear documentation improves collaboration and reviewability
-
----
-
-## Final Notes
-
-This project reflects how QA is practiced in a real-world development environment, balancing coverage, maintainability, and risk. The emphasis is on **quality engineering**, not just writing tests.
+Resolved defects in `qa/bug-reports/` document how cart and wishlist states previously leaked across logout (`BUG-001` and `BUG-002`). Both are resolved in `AuthContext.logout()` and guarded by `automation/playwright/tests/session-isolation.spec.ts`—and can be replayed live from the **QA Control Lab** drawer.
