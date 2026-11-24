@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -14,6 +14,7 @@ import {
   Play,
   Layers,
   AlertCircle,
+  Clock,
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,33 @@ import { useToast } from '@/hooks/use-toast';
 type CoverageFilter = 'all' | 'p0' | 'automated' | 'manual';
 type ModuleFilter = 'All' | ManualTestCase['module'];
 
+interface RunSummaryTest {
+  title: string;
+  status: string;
+  durationMs: number;
+}
+
+interface RunSummarySuite {
+  file: string;
+  passed: number;
+  failed: number;
+  skipped: number;
+  durationMs: number;
+  tests: RunSummaryTest[];
+}
+
+interface RunSummaryData {
+  generatedAt: string;
+  browser: string;
+  status: string;
+  total: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  durationMs: number;
+  suites: RunSummarySuite[];
+}
+
 const modules: ModuleFilter[] = [
   'All',
   'Authentication',
@@ -51,6 +79,25 @@ const QADossier: React.FC = () => {
   const [moduleFilter, setModuleFilter] = useState<ModuleFilter>('All');
   const [tcSearch, setTcSearch] = useState('');
   const [expandedTc, setExpandedTc] = useState<string | null>('TC-AUTH-008');
+  const [runSummary, setRunSummary] = useState<RunSummaryData | null>(null);
+  const [expandedSuite, setExpandedSuite] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/qa-run-summary.json')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: RunSummaryData | null) => {
+        if (active && data) {
+          setRunSummary(data);
+        }
+      })
+      .catch(() => {
+        // Gracefully fall back if artifact has not been generated yet
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const automatedTcCount = useMemo(
     () => manualTestCases.filter((tc) => tc.automated).length,
@@ -182,6 +229,102 @@ const QADossier: React.FC = () => {
         </section>
 
         <div className="container py-12 space-y-16">
+          {/* Live Last-Run Playwright Report */}
+          <section aria-labelledby="live-report-heading" data-testid="dossier-live-report">
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-border">
+                <div>
+                  <p className="font-mono text-xs uppercase tracking-wider text-accent font-semibold mb-1">
+                    Live Execution Artifact · public/qa-run-summary.json
+                  </p>
+                  <h2 id="live-report-heading" className="font-display text-xl font-bold text-foreground">
+                    Last Verified Playwright Run
+                  </h2>
+                </div>
+                {runSummary ? (
+                  <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
+                    <span className="inline-flex items-center gap-1.5 rounded bg-success/10 px-2.5 py-1 text-success font-semibold">
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      {runSummary.passed}/{runSummary.total} PASSED
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded bg-secondary px-2.5 py-1 text-foreground">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                      {(runSummary.durationMs / 1000).toFixed(1)}s · {runSummary.browser}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {new Date(runSummary.generatedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="font-mono text-xs text-muted-foreground">
+                    Run npm run test:e2e to generate execution artifact
+                  </span>
+                )}
+              </div>
+
+              {runSummary && (
+                <div className="mt-4 divide-y divide-border">
+                  {runSummary.suites.map((suite) => {
+                    const isOpen = expandedSuite === suite.file;
+                    return (
+                      <div key={suite.file}>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedSuite(isOpen ? null : suite.file)}
+                          aria-expanded={isOpen}
+                          className="flex w-full items-center justify-between gap-4 py-3 text-left hover:bg-secondary/30 px-2 rounded transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {isOpen ? (
+                              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                            )}
+                            <span className="font-mono text-xs font-semibold text-foreground truncate">
+                              {suite.file}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 font-mono text-xs shrink-0">
+                            <span className="text-success font-semibold">
+                              {suite.passed} passed
+                            </span>
+                            <span className="text-muted-foreground tabular-nums">
+                              {(suite.durationMs / 1000).toFixed(1)}s
+                            </span>
+                          </div>
+                        </button>
+                        {isOpen && (
+                          <div className="pb-3 pl-8 pr-2 space-y-1.5">
+                            {suite.tests.map((t, i) => (
+                              <div
+                                key={i}
+                                className="flex items-center justify-between gap-4 rounded border border-border bg-secondary/20 px-3 py-2 font-mono text-[11px]"
+                              >
+                                <span className="text-foreground truncate">{t.title}</span>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  <span className="text-success font-semibold uppercase">
+                                    {t.status}
+                                  </span>
+                                  <span className="text-muted-foreground tabular-nums">
+                                    {t.durationMs}ms
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+
           {/* Section 1: Risk-Based Regression Coverage Matrix */}
           <section aria-labelledby="coverage-heading" data-testid="dossier-coverage-section">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">

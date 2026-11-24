@@ -33,8 +33,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
       setIsLoading(true);
 
-      if (config.authChaos || config.networkLatency) {
-        await new Promise((resolve) => setTimeout(resolve, 750 + Math.random() * 350));
+      if (config.latencyMs > 0 || config.authChaos) {
+        const delay = config.latencyMs > 0 ? config.latencyMs : 750 + Math.random() * 350;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
       if (consumeForcedFailure('Auth.login') || (config.authChaos && Math.random() < 0.1)) {
@@ -57,15 +58,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
       return { success: result.success, error: result.error };
     },
-    [config.authChaos, config.networkLatency, consumeForcedFailure, logEvent]
+    [config.authChaos, config.latencyMs, consumeForcedFailure, logEvent]
   );
 
   const register = useCallback(
     async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
       setIsLoading(true);
 
-      if (config.authChaos || config.networkLatency) {
-        await new Promise((resolve) => setTimeout(resolve, 750 + Math.random() * 350));
+      if (config.latencyMs > 0 || config.authChaos) {
+        const delay = config.latencyMs > 0 ? config.latencyMs : 750 + Math.random() * 350;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
       if (consumeForcedFailure('Auth.register') || (config.authChaos && Math.random() < 0.1)) {
@@ -91,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
       return { success: result.success, error: result.error };
     },
-    [config.authChaos, config.networkLatency, consumeForcedFailure, logEvent]
+    [config.authChaos, config.latencyMs, consumeForcedFailure, logEvent]
   );
 
   const logout = useCallback(() => {

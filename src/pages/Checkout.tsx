@@ -146,8 +146,9 @@ const Checkout: React.FC = () => {
     setIsSubmitting(true);
     setServerError(null);
 
-    if (config.checkoutChaos || config.networkLatency) {
-      await new Promise((resolve) => setTimeout(resolve, 1200 + Math.random() * 800));
+    if (config.latencyMs > 0 || config.checkoutChaos) {
+      const delay = config.latencyMs > 0 ? config.latencyMs : 1200 + Math.random() * 800;
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     if (

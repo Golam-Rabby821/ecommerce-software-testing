@@ -16,11 +16,11 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
 }) => {
   const { config } = useQALab();
   const [reviews, setReviews] = useState<Review[]>(() => getReviewsByProductId(productId));
-  const [isLoading, setIsLoading] = useState(config.networkLatency);
+  const [isLoading, setIsLoading] = useState(config.latencyMs > 0);
 
   const loadReviews = useCallback(
     (notifyParent = false) => {
-      if (!config.networkLatency) {
+      if (config.latencyMs === 0) {
         setReviews(getReviewsByProductId(productId));
         setIsLoading(false);
         if (notifyParent) onReviewsChanged?.();
@@ -32,10 +32,10 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         setReviews(getReviewsByProductId(productId));
         setIsLoading(false);
         if (notifyParent) onReviewsChanged?.();
-      }, 400);
+      }, config.latencyMs);
       return () => clearTimeout(timer);
     },
-    [productId, config.networkLatency, onReviewsChanged]
+    [productId, config.latencyMs, onReviewsChanged]
   );
 
   useEffect(() => {

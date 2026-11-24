@@ -54,8 +54,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     async (product: Product, quantity = 1): Promise<{ success: boolean; error?: string }> => {
       setIsLoading(true);
 
-      if (config.cartChaos || config.networkLatency) {
-        await new Promise((resolve) => setTimeout(resolve, 350 + Math.random() * 250));
+      if (config.latencyMs > 0 || config.cartChaos) {
+        const delay = config.latencyMs > 0 ? config.latencyMs : 350 + Math.random() * 250;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
       if (consumeForcedFailure('Cart.addToCart') || (config.cartChaos && Math.random() < 0.05)) {
@@ -96,7 +97,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       logEvent('CART', 'CART_ADD', `Added ${quantity}x ${product.name}`);
       return { success: true };
     },
-    [config.cartChaos, config.networkLatency, consumeForcedFailure, logEvent]
+    [config.cartChaos, config.latencyMs, consumeForcedFailure, logEvent]
   );
 
   const removeFromCart = useCallback(
