@@ -532,6 +532,8 @@ const QADossier: React.FC = () => {
                   aria-hidden="true"
                 />
                 <Input
+                  id="dossier-tc-search"
+                  name="tcSearch"
                   type="text"
                   placeholder="Search by TC ID or title (e.g. TC-CHK-002)..."
                   value={tcSearch}

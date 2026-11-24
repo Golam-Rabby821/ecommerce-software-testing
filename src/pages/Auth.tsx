@@ -172,6 +172,7 @@ const Auth: React.FC = () => {
                       id="name"
                       name="name"
                       type="text"
+                      autoComplete="name"
                       placeholder="John Doe"
                       value={formData.name}
                       onChange={handleInputChange}
@@ -198,6 +199,7 @@ const Auth: React.FC = () => {
                     id="email"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={handleInputChange}
@@ -223,6 +225,7 @@ const Auth: React.FC = () => {
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleInputChange}
@@ -258,6 +261,7 @@ const Auth: React.FC = () => {
                       id="confirmPassword"
                       name="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}

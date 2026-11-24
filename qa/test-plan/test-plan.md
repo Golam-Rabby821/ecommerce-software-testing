@@ -148,7 +148,7 @@ Automated suite (20 checks across 6 specs + 1 setup project):
 
 - Application: Vite + React + TypeScript web app
 - Hosting: Netlify (`https://ecommercesoftwaretesting.netlify.app`)
-- CI Runner: GitHub Actions (`ubuntu-latest`, headless Chromium)
+- CI Runner: GitHub Actions (`ubuntu-24.04`, headless Chromium)
 - Local Dev: Windows / Node.js LTS (`http://localhost:8080`)
 - Test Data: Predefined sandbox users (`src/data/users.ts`) and 12 hardware products (`src/data/products.ts`)
 - Bug Tracking: Markdown postmortems (`qa/bug-reports/`) + ClickUp workflow
