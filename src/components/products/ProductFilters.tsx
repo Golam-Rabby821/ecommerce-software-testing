@@ -58,6 +58,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
             aria-hidden="true"
           />
           <Input
+            id="catalog-search"
+            name="search"
             type="text"
             placeholder="Search devices, specs, or categories..."
             value={searchQuery}
