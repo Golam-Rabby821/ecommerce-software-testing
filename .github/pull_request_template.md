@@ -2,7 +2,7 @@
 
 <!--
 Provide a clear, concise description of what this PR introduces or updates
-from a Quality Assurance perspective.
+from a Quality Assurance and Engineering perspective.
 -->
 
 ---
@@ -14,9 +14,10 @@ Select the primary purpose of this PR:
 - [ ] Test Plan
 - [ ] Manual Test Cases
 - [ ] Bug Report(s)
-- [ ] Test Automation (Playwright)
+- [ ] Test Automation (Playwright / Axe A11y)
+- [ ] Storefront / UI-UX / QA Tooling
 - [ ] Documentation
-- [ ] QA Process / Workflow Improvement
+- [ ] QA Process / CI Workflow Improvement
 
 ---
 
@@ -25,14 +26,14 @@ Select the primary purpose of this PR:
 ### Modules Covered
 Select all that apply:
 
-- [ ] Authentication
-- [ ] Product Listing
-- [ ] Product Details
+- [ ] Authentication & Session Isolation
+- [ ] Product Listing & Filters
+- [ ] Product Details & Reviews
 - [ ] Cart
-- [ ] Checkout
-- [ ] Order Confirmation
-- [ ] UI / UX
-- [ ] Error Handling
+- [ ] Checkout & Order Confirmation
+- [ ] QA Dossier (`/qa-dossier`) & QA Control Lab
+- [ ] 404 / SPA Routing
+- [ ] UI / UX & Accessibility
 - [ ] Other (specify below)
 
 Other modules (if any):
@@ -46,21 +47,22 @@ Other modules (if any):
 - [ ] Regression Testing
 - [ ] Exploratory Testing
 - [ ] UI / UX Validation
-- [ ] Basic Security Validation
+- [ ] Accessibility Testing (WCAG 2.1 A/AA)
+- [ ] Chaos / Fault Injection Testing
+- [ ] Basic Security Validation (Access Control & Session Isolation)
 
 ---
 
 ## Regression Impact Assessment
 
-- [ ] Covers regression-critical path(s)
+- [ ] Covers regression-critical path(s) (`P0`)
 - [ ] Does not affect regression-critical paths
 - [ ] Requires regression retesting
 
-If applicable, specify affected regression path(s):
-
-Example:
-- Login → Browse Products → Add to Cart → Checkout → Order Confirmation
-- Cart integrity across navigation
+Affected regression path(s) (if applicable):
+- Purchase Flow (`Login -> Browse -> Add to Cart -> Checkout -> Order Confirmation`)
+- Cart Integrity across navigation & quantity updates
+- Session Isolation (`Logout` clears Cart & Wishlist and blocks `/checkout`)
 
 ---
 
@@ -68,53 +70,36 @@ Example:
 
 Select all that apply:
 
-- [ ] Manual test execution
-- [ ] Exploratory testing
-- [ ] Automated tests added/updated (Playwright)
-- [ ] Bug reproduction performed
-- [ ] Retesting after fix verification
+- [ ] `npm run build` verified
+- [ ] `npm run test:e2e` (20 Playwright + Axe A11y checks) executed and passing
+- [ ] Manual / exploratory testing performed
+- [ ] Bug reproduction / live replay verified
 
 ---
 
 ## Defect Tracking
 
-- [ ] No defects identified
-- [ ] Defects logged in ClickUp (Jira-style workflow)
+- [ ] No new defects identified
+- [ ] Defects logged or updated in `qa/bug-reports/`
 
-If defects were logged, reference IDs:
-
-BUG IDs:
+Referenced BUG IDs (if any):
 - BUG-001
 - BUG-002
-
----
-
-## Evidence & Artifacts
-
-Select all that apply:
-
-- [ ] Test cases added or updated
-- [ ] Screenshots or screen recordings attached
-- [ ] Automation test results included
-- [ ] Logs or error messages documented
 
 ---
 
 ## Risks, Assumptions & Notes
 
 <!--
-Mention any known limitations, assumptions, uncovered scenarios,
-or risks related to this change.
+Mention any known limitations, uncovered scenarios, or risks related to this change.
 -->
 
 ---
 
 ## QA Checklist
 
-- [ ] Changes align with the Test Plan
+- [ ] Changes align with `qa/test-plan/test-plan.md`
 - [ ] Regression-critical paths evaluated
-- [ ] Negative scenarios considered
-- [ ] Test artifacts are documented clearly
+- [ ] Negative scenarios & accessibility impacts considered
+- [ ] Test artifacts and README docs updated if applicable
 - [ ] PR is ready for review and merge
-
----

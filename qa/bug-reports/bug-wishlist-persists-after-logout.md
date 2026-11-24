@@ -1,60 +1,58 @@
-# Bug: Wishlist items persist after user logout (Resolved)
+# BUG-002: Wishlist items persist after user logout (Resolved)
 
 ## Summary
-Wishlist items remained visible after a user logged out. This is now fixed in the frontend by clearing wishlist on logout (cart is also cleared).
+Wishlist items remained visible after a user logged out because `localStorage` state was not cleared during logout. This is resolved in the frontend and protected by an automated Playwright regression guard.
 
 ## Status / Resolution
-- Fixed: AuthContext now calls `clearWishlist` (and `clearCart`) on logout.
+- **Status:** Resolved
+- **Fix:** `AuthContext.logout()` calls `clearWishlist()` together with `clearCart()`.
+- **Automated Regression Guard:** [automation/playwright/tests/session-isolation.spec.ts](../../automation/playwright/tests/session-isolation.spec.ts) (`TC-AUTH-008`)
+- **Live Reproduction Toggle:** Enable **QA Lab -> Chaos -> `Replay BUG-001 / 002 (Logout Leak)`** on the live app to observe the pre-fix leak interactively.
 
 ## Environment
-- Application: TechStore (QA practice project)
-- Browser: Chrome (latest)
-- Environment: Local development
-- User state: Authenticated ➜ Logged out
+- Application: TechStore (QA engineering showcase)
+- Browser: Chromium / Chrome
+- Environment: Local development & Netlify production
+- User state: Authenticated -> Logged out
 
-## Severity
-Low
-
-## Priority
-Medium
+## Severity & Priority
+- **Severity:** Low
+- **Priority:** Medium
 
 ## Preconditions
-- User is logged in
+- User is logged in (`test@example.com`)
 - Wishlist is initially empty
 
 ## Steps to Reproduce
 1. Log in with a valid user account
 2. Add one or more products to the wishlist
-3. Verify wishlist contains added items
-4. Click the "Logout" button
-5. Navigate to the Wishlist page
+3. Verify wishlist badge and `/wishlist` contain added items
+4. Click the `Logout` button
+5. Navigate to `/wishlist`
 
 ## Expected Result
-- Wishlist should be cleared on logout  
-  OR  
-- Wishlist should be associated with the authenticated user and not visible after logout
+- Wishlist clears on logout, OR wishlist is scoped to the authenticated user and hidden after logout
 
-## Actual Result (before fix)
+## Actual Result (Before Fix)
 - Wishlist items remained visible after logout
-- Wishlist state persisted independently of authentication state
+- `localStorage` wishlist state persisted independently of authentication state
 
-## Verification (after fix)
-- Log in, add items to wishlist and cart
-- Log out; both wishlist and cart clear
-- Log back in; both remain empty (no per-user persistence yet)
+## Verification (After Fix)
+- Log in, save items to wishlist and cart, then click `Logout`
+- Wishlist count drops to `0` and `/wishlist` displays the empty state
+- Verified automatically on every CI run in `session-isolation.spec.ts`
 
 ## Impact
 - Breaks user session isolation
-- Causes confusing user experience
-- User preferences leak across sessions
+- Leaks user preferences across sequential sessions on a shared browser
 
 ## Related Issues
-- Similar behavior observed for Cart persistence after logout (see: bug-cart-persists-after-logout.md)
+- Same root cause observed for Cart persistence after logout ([BUG-001](bug-cart-persists-after-logout.md))
 
 ## Notes / Suspected Root Cause
-- Wishlist state was persisted in storage
-- Logout action cleared authentication state but did not reset wishlist state
+- Wishlist state was persisted in `localStorage` (`techstore_wishlist`)
+- Logout action cleared authentication state without resetting wishlist state
 - Wishlist was not scoped to a user identifier
 
 ## Remaining Limitations
-- No backend/user-scoped storage: wishlist and cart are cleared on logout and not restored per user until backend support exists.
+- Frontend-only SUT without backend user-scoped storage: wishlist and cart are intentionally cleared on logout until backend persistence exists.
