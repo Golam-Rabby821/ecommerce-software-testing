@@ -8,19 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQALab } from '@/contexts/QALabContext';
 import { useToast } from '@/hooks/use-toast';
 import { getOrdersByUserId, seedSampleOrders, Order } from '@/data/orders';
 import { User, Package, Settings, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
+  const { config, consumeForcedFailure } = useQALab();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(config.networkLatency);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -37,7 +38,6 @@ const Profile: React.FC = () => {
       return;
     }
 
-    // Initialize form with user data
     if (user) {
       setFormData((prev) => ({
         ...prev,
@@ -45,16 +45,22 @@ const Profile: React.FC = () => {
         email: user.email || '',
       }));
 
-      // Seed sample orders for demo
       seedSampleOrders(user.id);
-      
-      // Simulate loading delay
-      setTimeout(() => {
+
+      if (!config.networkLatency) {
+        setOrders(getOrdersByUserId(user.id));
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      const timer = setTimeout(() => {
         setOrders(getOrdersByUserId(user.id));
         setIsLoading(false);
       }, 600);
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, config.networkLatency]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,11 +71,11 @@ const Profile: React.FC = () => {
     e.preventDefault();
     setIsSaving(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    if (config.networkLatency || config.authChaos) {
+      await new Promise((resolve) => setTimeout(resolve, 650));
+    }
 
-    // Simulate occasional failure
-    if (Math.random() < 0.1) {
+    if (consumeForcedFailure('Profile.saveSettings') || (config.authChaos && Math.random() < 0.1)) {
       setIsSaving(false);
       toast({
         title: 'Error',
@@ -89,32 +95,32 @@ const Profile: React.FC = () => {
   const getStatusIcon = (status: Order['status']) => {
     switch (status) {
       case 'pending':
-        return <Clock className="h-4 w-4" />;
+        return <Clock className="h-3.5 w-3.5" />;
       case 'processing':
-        return <Package className="h-4 w-4" />;
+        return <Package className="h-3.5 w-3.5" />;
       case 'shipped':
-        return <Truck className="h-4 w-4" />;
+        return <Truck className="h-3.5 w-3.5" />;
       case 'delivered':
-        return <CheckCircle className="h-4 w-4" />;
+        return <CheckCircle className="h-3.5 w-3.5" />;
       case 'cancelled':
-        return <XCircle className="h-4 w-4" />;
+        return <XCircle className="h-3.5 w-3.5" />;
       default:
-        return <Clock className="h-4 w-4" />;
+        return <Clock className="h-3.5 w-3.5" />;
     }
   };
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+        return 'bg-amber-500/10 text-amber-700 border-amber-500/25';
       case 'processing':
-        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+        return 'bg-secondary text-foreground border-border';
       case 'shipped':
-        return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
+        return 'bg-foreground/10 text-foreground border-foreground/20';
       case 'delivered':
-        return 'bg-green-500/10 text-green-600 border-green-500/20';
+        return 'bg-success/10 text-success border-success/25';
       case 'cancelled':
-        return 'bg-red-500/10 text-red-600 border-red-500/20';
+        return 'bg-destructive/10 text-destructive border-destructive/25';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -126,24 +132,27 @@ const Profile: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container py-8" data-testid="profile-page">
+      <div className="container py-8 md:py-10" data-testid="profile-page">
         <div className="mb-8">
+          <p className="font-mono text-xs uppercase tracking-wider text-accent font-semibold mb-1">
+            Authenticated Session
+          </p>
           <h1 className="font-display text-3xl font-bold text-foreground" data-testid="profile-title">
             My Account
           </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your account settings and view order history
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage account preferences and inspect order history
           </p>
         </div>
 
         <Tabs defaultValue="orders" className="space-y-6" data-testid="profile-tabs">
-          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-2 lg:w-[400px] bg-secondary">
             <TabsTrigger value="orders" data-testid="orders-tab">
-              <Package className="h-4 w-4 mr-2" />
+              <Package className="h-4 w-4 mr-2" aria-hidden="true" />
               Order History
             </TabsTrigger>
             <TabsTrigger value="settings" data-testid="settings-tab">
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="h-4 w-4 mr-2" aria-hidden="true" />
               Account Settings
             </TabsTrigger>
           </TabsList>
@@ -154,21 +163,21 @@ const Profile: React.FC = () => {
                 {[1, 2].map((i) => (
                   <Card key={i} className="animate-pulse">
                     <CardHeader>
-                      <div className="h-4 bg-muted rounded w-1/4"></div>
-                      <div className="h-3 bg-muted rounded w-1/3 mt-2"></div>
+                      <div className="h-4 bg-muted rounded w-1/4" />
+                      <div className="h-3 bg-muted rounded w-1/3 mt-2" />
                     </CardHeader>
                     <CardContent>
-                      <div className="h-16 bg-muted rounded"></div>
+                      <div className="h-16 bg-muted rounded" />
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : orders.length === 0 ? (
-              <Card data-testid="no-orders">
+              <Card data-testid="no-orders" className="border-dashed shadow-none">
                 <CardContent className="py-12 text-center">
-                  <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No orders yet</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <Package className="h-10 w-10 mx-auto text-muted-foreground mb-3" aria-hidden="true" />
+                  <h3 className="text-base font-medium text-foreground mb-1">No orders yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
                     Start shopping to see your order history here.
                   </p>
                   <Button onClick={() => navigate('/')} data-testid="start-shopping-button">
@@ -178,24 +187,25 @@ const Profile: React.FC = () => {
               </Card>
             ) : (
               orders.map((order) => (
-                <Card key={order.id} data-testid={`order-card-${order.id}`}>
+                <Card key={order.id} data-testid={`order-card-${order.id}`} className="shadow-sm">
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
-                        <CardTitle className="text-lg" data-testid={`order-id-${order.id}`}>
-                          Order {order.id}
+                        <CardTitle className="font-mono text-base" data-testid={`order-id-${order.id}`}>
+                          {order.id}
                         </CardTitle>
                         <CardDescription data-testid={`order-date-${order.id}`}>
-                          Placed on {new Date(order.createdAt).toLocaleDateString('en-US', {
+                          Placed on{' '}
+                          {new Date(order.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric',
-                            month: 'long',
+                            month: 'short',
                             day: 'numeric',
                           })}
                         </CardDescription>
                       </div>
                       <Badge
                         variant="outline"
-                        className={`gap-1 capitalize ${getStatusColor(order.status)}`}
+                        className={`gap-1.5 font-mono text-xs capitalize ${getStatusColor(order.status)}`}
                         data-testid={`order-status-${order.id}`}
                       >
                         {getStatusIcon(order.status)}
@@ -214,25 +224,25 @@ const Profile: React.FC = () => {
                           <img
                             src={item.product.image}
                             alt={item.product.name}
-                            className="h-16 w-16 rounded-lg object-cover"
+                            className="h-14 w-14 rounded-md border border-border object-cover"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-foreground truncate">
+                            <p className="text-sm font-medium text-foreground truncate">
                               {item.product.name}
                             </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="font-mono text-xs text-muted-foreground">
                               Qty: {item.quantity} × ${item.product.price.toFixed(2)}
                             </p>
                           </div>
-                          <p className="font-medium text-foreground">
+                          <p className="font-mono text-sm font-medium text-foreground tabular-nums">
                             ${item.price.toFixed(2)}
                           </p>
                         </div>
                       ))}
                       <div className="border-t border-border pt-4 flex justify-between items-center">
-                        <span className="text-muted-foreground">Total</span>
+                        <span className="text-sm text-muted-foreground">Total</span>
                         <span
-                          className="text-lg font-bold text-foreground"
+                          className="font-mono text-lg font-bold text-foreground tabular-nums"
                           data-testid={`order-total-${order.id}`}
                         >
                           ${order.total.toFixed(2)}
@@ -246,14 +256,14 @@ const Profile: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="settings" data-testid="settings-content">
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <User className="h-4 w-4" aria-hidden="true" />
                   Account Information
                 </CardTitle>
                 <CardDescription>
-                  Update your personal information and preferences
+                  Update your personal information and default shipping address
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -292,14 +302,16 @@ const Profile: React.FC = () => {
                         type="tel"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        placeholder="(555) 123-4567"
+                        placeholder="01XXXXXXXXX"
                         data-testid="settings-phone-input"
                       />
                     </div>
                   </div>
 
                   <div className="border-t border-border pt-6">
-                    <h3 className="text-lg font-medium text-foreground mb-4">Default Shipping Address</h3>
+                    <h3 className="text-base font-semibold text-foreground mb-4">
+                      Default Shipping Address
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="address">Street Address</Label>

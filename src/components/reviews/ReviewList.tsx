@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Review, markReviewHelpful } from '@/data/reviews';
 import { useToast } from '@/hooks/use-toast';
+import { useQALab } from '@/contexts/QALabContext';
 
 interface ReviewListProps {
   reviews: Review[];
@@ -12,6 +13,7 @@ interface ReviewListProps {
 
 export const ReviewList: React.FC<ReviewListProps> = ({ reviews, onReviewsUpdated }) => {
   const { toast } = useToast();
+  const { config } = useQALab();
   const [helpfulClicked, setHelpfulClicked] = useState<Set<string>>(new Set());
 
   const handleMarkHelpful = async (reviewId: string) => {
@@ -23,8 +25,9 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews, onReviewsUpdate
       return;
     }
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    if (config.networkLatency) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
 
     const success = markReviewHelpful(reviewId);
     if (success) {
@@ -40,19 +43,19 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews, onReviewsUpdate
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
     });
   };
 
   if (reviews.length === 0) {
     return (
-      <Card data-testid="no-reviews">
+      <Card data-testid="no-reviews" className="shadow-sm">
         <CardContent className="py-12 text-center">
-          <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No reviews yet</h3>
-          <p className="text-muted-foreground">
-            Be the first to review this product!
+          <User className="h-10 w-10 mx-auto text-muted-foreground mb-3" aria-hidden="true" />
+          <h3 className="text-base font-medium text-foreground mb-1">No reviews yet</h3>
+          <p className="text-sm text-muted-foreground">
+            Be the first to review this product.
           </p>
         </CardContent>
       </Card>
@@ -62,51 +65,56 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews, onReviewsUpdate
   return (
     <div className="space-y-4" data-testid="reviews-list">
       {reviews.map((review) => (
-        <Card key={review.id} data-testid={`review-${review.id}`}>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="flex items-center gap-0.5" data-testid={`review-rating-${review.id}`}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-4 w-4 ${
-                          star <= review.rating
-                            ? 'fill-accent text-accent'
-                            : 'text-muted'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-semibold text-foreground" data-testid={`review-title-${review.id}`}>
-                    {review.title}
-                  </span>
+        <Card key={review.id} data-testid={`review-${review.id}`} className="shadow-sm">
+          <CardContent className="pt-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-0.5" data-testid={`review-rating-${review.id}`}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-3.5 w-3.5 ${
+                        star <= review.rating
+                          ? 'fill-accent text-accent'
+                          : 'text-muted-foreground/30'
+                      }`}
+                      aria-hidden="true"
+                    />
+                  ))}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  By <span className="font-medium">{review.userName}</span> on{' '}
-                  {formatDate(review.createdAt)}
-                </p>
+                <span
+                  className="font-semibold text-sm text-foreground"
+                  data-testid={`review-title-${review.id}`}
+                >
+                  {review.title}
+                </span>
               </div>
+              <p className="font-mono text-[11px] text-muted-foreground">
+                {review.userName} · {formatDate(review.createdAt)}
+              </p>
             </div>
 
-            <p 
-              className="text-foreground mb-4 leading-relaxed"
+            <p
+              className="text-sm text-muted-foreground mb-4 leading-relaxed"
               data-testid={`review-comment-${review.id}`}
             >
               {review.comment}
             </p>
 
-            <div className="flex items-center gap-4 pt-3 border-t border-border">
+            <div className="flex items-center pt-3 border-t border-border">
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => handleMarkHelpful(review.id)}
                 disabled={helpfulClicked.has(review.id)}
-                className="gap-2"
+                className="gap-2 font-mono text-xs text-muted-foreground hover:text-foreground"
                 data-testid={`helpful-button-${review.id}`}
               >
-                <ThumbsUp className={`h-4 w-4 ${helpfulClicked.has(review.id) ? 'fill-current' : ''}`} />
+                <ThumbsUp
+                  className={`h-3.5 w-3.5 ${helpfulClicked.has(review.id) ? 'fill-current text-foreground' : ''}`}
+                  aria-hidden="true"
+                />
                 Helpful ({review.helpful})
               </Button>
             </div>

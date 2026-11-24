@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { loginSchema, registerSchema, LoginFormData, RegisterFormData } from '@/utils/validation';
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { loginSchema, registerSchema } from '@/utils/validation';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Sparkles } from 'lucide-react';
 
 type AuthMode = 'login' | 'register';
 
@@ -29,7 +29,6 @@ const Auth: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
 
-  // Form data
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -37,7 +36,6 @@ const Auth: React.FC = () => {
     confirmPassword: '',
   });
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       const redirect = searchParams.get('redirect') || '/';
@@ -45,7 +43,6 @@ const Auth: React.FC = () => {
     }
   }, [isAuthenticated, navigate, searchParams]);
 
-  // Update mode from URL
   useEffect(() => {
     const urlMode = searchParams.get('mode') as AuthMode;
     if (urlMode && (urlMode === 'login' || urlMode === 'register')) {
@@ -55,25 +52,25 @@ const Auth: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
     setServerError(null);
   };
 
   const validateForm = (): boolean => {
     const schema = mode === 'login' ? loginSchema : registerSchema;
-    const dataToValidate = mode === 'login' 
-      ? { email: formData.email, password: formData.password }
-      : formData;
+    const dataToValidate =
+      mode === 'login'
+        ? { email: formData.email, password: formData.password }
+        : formData;
 
     const result = schema.safeParse(dataToValidate);
 
     if (!result.success) {
       const newErrors: FormErrors = {};
-      result.error.errors.forEach(err => {
+      result.error.errors.forEach((err) => {
         const field = err.path[0] as string;
         newErrors[field] = err.message;
       });
@@ -91,25 +88,34 @@ const Auth: React.FC = () => {
 
     if (!validateForm()) return;
 
-    let result;
-    if (mode === 'login') {
-      result = await login(formData.email, formData.password);
-    } else {
-      result = await register(formData.email, formData.password, formData.name);
-    }
+    const result =
+      mode === 'login'
+        ? await login(formData.email, formData.password)
+        : await register(formData.email, formData.password, formData.name);
 
     if (result.success) {
       toast({
         title: mode === 'login' ? 'Welcome back!' : 'Account created!',
-        description: mode === 'login' 
-          ? 'You have successfully logged in.' 
-          : 'Your account has been created successfully.',
+        description:
+          mode === 'login'
+            ? 'You have successfully logged in.'
+            : 'Your account has been created successfully.',
       });
       const redirect = searchParams.get('redirect') || '/';
       navigate(redirect);
     } else {
       setServerError(result.error || 'An error occurred. Please try again.');
     }
+  };
+
+  const handleFillTestCredentials = () => {
+    setFormData((prev) => ({
+      ...prev,
+      email: 'test@example.com',
+      password: 'Password123!',
+    }));
+    setErrors({});
+    setServerError(null);
   };
 
   const toggleMode = () => {
@@ -122,46 +128,46 @@ const Auth: React.FC = () => {
 
   return (
     <Layout>
-      <div 
-        className="container flex items-center justify-center py-12"
-        data-testid="auth-page"
-      >
+      <div className="container flex items-center justify-center py-12" data-testid="auth-page">
         <div className="w-full max-w-md">
-          <div className="rounded-xl border border-border bg-card p-8 shadow-lg animate-scaleIn">
-            {/* Header */}
-            <div className="mb-8 text-center">
-              <h1 
-                className="font-display text-2xl font-bold text-foreground mb-2"
+          <div className="rounded-lg border border-border bg-card p-8 shadow-sm animate-scaleIn">
+            <div className="mb-7 text-center">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-accent font-semibold mb-1.5">
+                {mode === 'login' ? 'Session Access' : 'New Profile'}
+              </p>
+              <h1
+                className="font-display text-2xl font-bold text-foreground mb-1"
                 data-testid="auth-title"
               >
-                {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+                {mode === 'login' ? 'Sign In to TechStore' : 'Create Account'}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {mode === 'login'
-                  ? 'Sign in to access your account'
-                  : 'Sign up to start shopping'}
+                  ? 'Access checkout, order history, and account preferences'
+                  : 'Register a local test session account'}
               </p>
             </div>
 
-            {/* Server Error */}
             {serverError && (
-              <div 
-                className="mb-6 flex items-center gap-3 rounded-lg bg-destructive/10 p-4 text-sm text-destructive animate-shake"
+              <div
+                role="alert"
+                className="mb-6 flex items-center gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-3.5 text-sm text-destructive animate-shake"
                 data-testid="server-error"
               >
-                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                 <span>{serverError}</span>
               </div>
             )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5" data-testid="auth-form">
-              {/* Name Field (Register only) */}
+            <form onSubmit={handleSubmit} noValidate className="space-y-4" data-testid="auth-form">
               {mode === 'register' && (
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <User
+                      className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                      aria-hidden="true"
+                    />
                     <Input
                       id="name"
                       name="name"
@@ -174,21 +180,20 @@ const Auth: React.FC = () => {
                     />
                   </div>
                   {errors.name && (
-                    <p 
-                      className="text-sm text-destructive"
-                      data-testid="name-error"
-                    >
+                    <p className="text-xs text-destructive" data-testid="name-error">
                       {errors.name}
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Mail
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   <Input
                     id="email"
                     name="email"
@@ -201,20 +206,19 @@ const Auth: React.FC = () => {
                   />
                 </div>
                 {errors.email && (
-                  <p 
-                    className="text-sm text-destructive"
-                    data-testid="email-error"
-                  >
+                  <p className="text-xs text-destructive" data-testid="email-error">
                     {errors.email}
                   </p>
                 )}
               </div>
 
-              {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Lock
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   <Input
                     id="password"
                     name="password"
@@ -230,26 +234,26 @@ const Auth: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     data-testid="toggle-password-visibility"
+                    aria-label={showPassword ? 'Mask input visibility' : 'Reveal input visibility'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p 
-                    className="text-sm text-destructive"
-                    data-testid="password-error"
-                  >
+                  <p className="text-xs text-destructive" data-testid="password-error">
                     {errors.password}
                   </p>
                 )}
               </div>
 
-              {/* Confirm Password Field (Register only) */}
               {mode === 'register' && (
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Lock
+                      className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                      aria-hidden="true"
+                    />
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
@@ -265,22 +269,23 @@ const Auth: React.FC = () => {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       data-testid="toggle-confirm-password-visibility"
+                      aria-label={showConfirmPassword ? 'Mask confirmation visibility' : 'Reveal confirmation visibility'}
                     >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p 
-                      className="text-sm text-destructive"
-                      data-testid="confirm-password-error"
-                    >
+                    <p className="text-xs text-destructive" data-testid="confirm-password-error">
                       {errors.confirmPassword}
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 className="w-full"
@@ -292,14 +297,13 @@ const Auth: React.FC = () => {
               </Button>
             </form>
 
-            {/* Toggle Mode */}
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
                 <button
                   type="button"
                   onClick={toggleMode}
-                  className="ml-2 font-medium text-primary hover:underline"
+                  className="ml-2 font-semibold text-foreground underline underline-offset-4 hover:text-accent"
                   data-testid="toggle-auth-mode"
                 >
                   {mode === 'login' ? 'Sign up' : 'Sign in'}
@@ -307,19 +311,33 @@ const Auth: React.FC = () => {
               </p>
             </div>
 
-            {/* Test Account Info */}
             {mode === 'login' && (
-              <div 
-                className="mt-6 rounded-lg bg-muted p-4 text-sm"
+              <div
+                className="mt-6 rounded-md border border-border bg-secondary/50 p-4 text-xs space-y-2"
                 data-testid="test-account-info"
               >
-                <p className="font-medium mb-1">Test Account:</p>
-                <p className="text-muted-foreground">
-                  Email: <code className="bg-background px-1 rounded">test@example.com</code>
-                </p>
-                <p className="text-muted-foreground">
-                  Password: <code className="bg-background px-1 rounded">Password123!</code>
-                </p>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-semibold uppercase tracking-wider text-foreground">
+                    QA Sandbox Account
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleFillTestCredentials}
+                    data-testid="fill-test-credentials"
+                    className="inline-flex items-center gap-1 font-mono text-[11px] font-medium text-accent hover:underline"
+                  >
+                    <Sparkles className="h-3 w-3" aria-hidden="true" />
+                    Auto-fill
+                  </button>
+                </div>
+                <div className="font-mono text-muted-foreground space-y-0.5">
+                  <p>
+                    email: <span className="text-foreground">test@example.com</span>
+                  </p>
+                  <p>
+                    pass:  <span className="text-foreground">Password123!</span>
+                  </p>
+                </div>
               </div>
             )}
           </div>

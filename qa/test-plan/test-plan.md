@@ -41,12 +41,12 @@ Key Features:
 
 ### 4.1 In Scope
 
-- Authentication workflows
-- Product listing, search, and details
-- Cart functionality
-- Checkout and order confirmation
-- UI/UX behavior and responsiveness
-- Error handling and validation messages
+- Authentication workflows and session isolation on logout
+- Product listing, search, price/stock filtering, and synchronized reviews
+- Cart functionality and pricing calculations
+- Checkout validation and order confirmation
+- UI/UX behavior, responsiveness, and WCAG 2.1 A/AA accessibility checks
+- Error handling, validation messages, and chaos fault-injection behavior
 - Basic security validation (access control, input handling)
 
 ---
@@ -56,8 +56,7 @@ Key Features:
 - Performance and load testing
 - Real payment gateway integration
 - Backend unit testing
-- Penetration testing and advanced security testing
-- Accessibility compliance testing (WCAG)
+- Penetration testing and advanced network security testing
 
 ---
 
@@ -122,16 +121,17 @@ Manual testing will be used for:
 
 ### 8.2 Automation Testing
 
-Automation will focus on regression-critical workflows only.
+Automation focuses on regression-critical workflows, session-isolation guards, chaos error handling, and accessibility gating.
 
-Tool: Playwright (JavaScript)
+Tool: Playwright (TypeScript) + `@axe-core/playwright`
 
 Automated scenarios include:
-- Login success and failure
-- Add to cart
-- Update cart quantity
-- Checkout happy path
-- Basic regression flow
+- Login success, invalid credentials, unregistered email, and empty-field validation (`auth.spec.ts`)
+- Add to cart, state retention, quantity/total recalculation, and out-of-stock guard (`cart.spec.ts`)
+- Checkout happy path, missing shipping validation, and unauthenticated redirect (`checkout.spec.ts`)
+- Session isolation on logout clearing cart and wishlist (`session-isolation.spec.ts`)
+- QA Dossier filtering and graceful failure under forced chaos (`qa-dossier-and-chaos.spec.ts`)
+- WCAG 2.1 A/AA accessibility checks on core routes (`accessibility.spec.ts`)
 
 ---
 

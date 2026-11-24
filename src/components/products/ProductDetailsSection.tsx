@@ -10,50 +10,52 @@ interface ProductDetailsSectionProps {
 
 export const ProductDetailsSection: React.FC<ProductDetailsSectionProps> = ({ product }) => {
   return (
-    <section className="mt-12 pt-8 border-t border-border" data-testid="product-details-section">
-      <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-        Product Details
-      </h2>
+    <section className="mt-14 pt-10 border-t border-border" data-testid="product-details-section">
+      <div className="mb-6">
+        <p className="font-mono text-xs uppercase tracking-wider text-accent font-semibold mb-1">
+          Hardware Sheet
+        </p>
+        <h2 className="font-display text-2xl font-bold text-foreground">
+          Product Details
+        </h2>
+      </div>
 
       <Tabs defaultValue="specifications" className="w-full" data-testid="product-details-tabs">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[600px] mb-6">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[540px] mb-6 bg-secondary">
           <TabsTrigger value="specifications" data-testid="specifications-tab">
-            <Info className="h-4 w-4 mr-2 hidden sm:inline" />
+            <Info className="h-4 w-4 mr-2 hidden sm:inline" aria-hidden="true" />
             Specifications
           </TabsTrigger>
           <TabsTrigger value="features" data-testid="features-tab">
-            <ListChecks className="h-4 w-4 mr-2 hidden sm:inline" />
+            <ListChecks className="h-4 w-4 mr-2 hidden sm:inline" aria-hidden="true" />
             Features
           </TabsTrigger>
           <TabsTrigger value="box" data-testid="in-the-box-tab">
-            <Package className="h-4 w-4 mr-2 hidden sm:inline" />
+            <Package className="h-4 w-4 mr-2 hidden sm:inline" aria-hidden="true" />
             In The Box
           </TabsTrigger>
         </TabsList>
 
-        {/* Specifications Tab */}
         <TabsContent value="specifications" data-testid="specifications-content">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Info className="h-5 w-5 text-primary" />
+          <Card className="shadow-sm">
+            <CardHeader className="border-b border-border py-4">
+              <CardTitle className="font-mono text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Info className="h-4 w-4 text-foreground" aria-hidden="true" />
                 Technical Specifications
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="specifications-grid">
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8" data-testid="specifications-grid">
                 {product.specifications.map((spec, index) => (
                   <div
                     key={index}
-                    className={`flex justify-between py-3 ${
-                      index < product.specifications.length - (product.specifications.length % 2 === 0 ? 2 : 1)
-                        ? 'border-b border-border'
-                        : ''
-                    }`}
+                    className="flex justify-between gap-4 py-3 border-b border-border last:border-b-0"
                     data-testid={`spec-${index}`}
                   >
-                    <span className="text-muted-foreground">{spec.label}</span>
-                    <span className="font-medium text-foreground text-right">{spec.value}</span>
+                    <span className="text-sm text-muted-foreground">{spec.label}</span>
+                    <span className="font-mono text-sm font-medium text-foreground text-right">
+                      {spec.value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -61,26 +63,23 @@ export const ProductDetailsSection: React.FC<ProductDetailsSectionProps> = ({ pr
           </Card>
         </TabsContent>
 
-        {/* Features Tab */}
         <TabsContent value="features" data-testid="features-content">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <ListChecks className="h-5 w-5 text-primary" />
-                Key Features
+          <Card className="shadow-sm">
+            <CardHeader className="border-b border-border py-4">
+              <CardTitle className="font-mono text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <ListChecks className="h-4 w-4 text-foreground" aria-hidden="true" />
+                Key Capabilities
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3" data-testid="features-list">
+            <CardContent className="pt-6">
+              <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3.5" data-testid="features-list">
                 {product.features.map((feature, index) => (
                   <li
                     key={index}
-                    className="flex items-start gap-3"
+                    className="flex items-start gap-3 text-sm"
                     data-testid={`feature-${index}`}
                   >
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 mt-0.5">
-                      <Check className="h-4 w-4 text-primary" />
-                    </div>
+                    <Check className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
                     <span className="text-foreground">{feature}</span>
                   </li>
                 ))}
@@ -89,27 +88,26 @@ export const ProductDetailsSection: React.FC<ProductDetailsSectionProps> = ({ pr
           </Card>
         </TabsContent>
 
-        {/* In The Box Tab */}
         <TabsContent value="box" data-testid="in-the-box-content">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Package className="h-5 w-5 text-primary" />
-                What's In The Box
+          <Card className="shadow-sm">
+            <CardHeader className="border-b border-border py-4">
+              <CardTitle className="font-mono text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Package className="h-4 w-4 text-foreground" aria-hidden="true" />
+                Package Contents
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="in-the-box-list">
+            <CardContent className="pt-6">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" data-testid="in-the-box-list">
                 {product.inTheBox.map((item, index) => (
                   <li
                     key={index}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30"
+                    className="flex items-center gap-3 p-3 rounded-md border border-border bg-secondary/30"
                     data-testid={`box-item-${index}`}
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium text-sm">
-                      {index + 1}
-                    </div>
-                    <span className="text-foreground">{item}</span>
+                    <span className="font-mono text-xs font-semibold text-muted-foreground">
+                      0{index + 1}
+                    </span>
+                    <span className="text-sm text-foreground">{item}</span>
                   </li>
                 ))}
               </ul>
