@@ -526,9 +526,9 @@ export const defectCaseStudies: DefectCaseStudy[] = [
 
 export const ciPipelineStages: CIPipelineStage[] = [
   {
-    step: '01 · Checkout & Deterministic Install',
-    command: 'npm ci && npx playwright install chromium',
-    purpose: 'Pins lockfile dependencies and provisions Chromium on ubuntu-24.04.',
+    step: '01 · Container & Deterministic Install',
+    command: 'mcr.microsoft.com/playwright:v1.57.0-noble -> npm ci',
+    purpose: 'Uses official Playwright Noble container with pre-baked Chromium + deps and pinned npm dependencies.',
   },
   {
     step: '02 · Auth Seed Setup Project',
